@@ -5,7 +5,9 @@ import "package:camera/camera.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:gal/gal.dart";
 
+import "../../../core/config/app_config.dart";
 import "../../../core/error/failures.dart";
 import "../data/image_compressor.dart";
 import "scan_controller.dart";
@@ -178,7 +180,26 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     } on Object {
       // Best-effort cleanup; a leftover temp file is non-fatal.
     }
-    return compressJpeg(raw);
+    final Uint8List compressed = await compressJpeg(raw);
+    // Optional, gated data-collection: persist the frame we send to Gemini.
+    if (AppConfig.saveCapturesToGallery) {
+      await _saveCapture(compressed);
+    }
+    return compressed;
+  }
+
+  /// Saves the compressed capture to the device gallery (data-collection mode).
+  /// Best-effort: a save failure (e.g. permission denied) must not block a scan.
+  Future<void> _saveCapture(Uint8List bytes) async {
+    try {
+      await Gal.putImageBytes(
+        bytes,
+        album: AppConfig.captureAlbum,
+        name: "exam_${DateTime.now().millisecondsSinceEpoch}",
+      );
+    } on Object catch (e, stackTrace) {
+      developer.log("Failed to save capture", name: "ScanScreen", error: e, stackTrace: stackTrace);
+    }
   }
 
   @override

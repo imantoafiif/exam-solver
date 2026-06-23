@@ -53,6 +53,16 @@ void main() {
       expect(result.rawMarkdown, _sample);
     });
 
+    test("does not mistake prose like 'Cloud Run' for option C", () {
+      const String md = "## Best Answer\n\nThe correct answer is **B) Cloud Run**.\n";
+      expect(AnswerResult.fromMarkdown(md).bestAnswer, "B");
+    });
+
+    test("extracts a bare letter answer", () {
+      const String md = "## Best Answer\n\nC\n";
+      expect(AnswerResult.fromMarkdown(md).bestAnswer, "C");
+    });
+
     test("degrades gracefully when sections are missing", () {
       // Act
       final AnswerResult result = AnswerResult.fromMarkdown("no headers here");

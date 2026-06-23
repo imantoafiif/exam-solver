@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses the camera to scan and analyze exam questions.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Saves captured exam questions to your photo library for review.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

@@ -103,15 +103,25 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
 
 **Goal:** answers are accurate and trustworthy on real ACE questions.
 
-- [ ] Collect a test set of real ACE question images (screen, monitor photo, glare, partial, multi-window)
-- [ ] Run each through the app; record correctness + confidence
-- [ ] Verify **bias prevention**: questions with a pre-highlighted (wrong) answer are still solved independently
-- [ ] Verify imperfect-image handling: assumptions stated, no false refusals
+- [x] **Validation tooling:** `tool/validate_batch.dart` — runs a folder of images through the
+      real client+parser and reports per-image answer/confidence/§18-compliance/assumptions/latency,
+      plus accuracy vs an optional `answer_key.json`. (Demo: 1 known image → correct, 100%, ~6s.)
+- [x] Harden best-answer parser (don't mistake prose like "Cloud Run" for option C) + tests
+- [ ] **Collect a labeled test set** of real ACE images (clean screenshot, monitor photo, glare,
+      partial/cropped, multi-window) + an `answer_key.json` — **needs user-supplied images**
+- [ ] Run the set through `validate_batch.dart`; record correctness + confidence
+- [ ] Verify **bias prevention**: include a question with a pre-highlighted (wrong) answer; confirm
+      it's still solved independently — **needs a bias test image**
+- [ ] Verify imperfect-image handling: assumptions stated, no false refusals (glare/partial set)
 - [ ] Iterate `ace_solver_prompt.txt` only (no Dart changes) until accuracy is acceptable
-- [ ] Confirm output always matches the §18 format and renders correctly
-- [ ] Decide: keep markdown rendering (A) or move to structured JSON (B)
+- [x] Confirm output matches the §18 format and renders correctly (batch reports `format=complete`;
+      markdown renders in the answer panel)
+- [x] **Decision: keep markdown rendering (A).** It works, renders cleanly, the parser reliably
+      extracts answer/confidence, and §18 compliance is consistent. Structured JSON (B —
+      `responseSchema`) is deferred; not worth the added complexity for the MVP.
 
-**Done when:** on the test set, the app reliably returns correct best answers with sound reasoning, ignores answer indicators, and never crashes on imperfect input.
+**Done when:** on the test set, the app reliably returns correct best answers with sound reasoning,
+ignores answer indicators, and never crashes on imperfect input. **(Blocked on a user test set.)**
 
 ---
 
@@ -126,13 +136,21 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
       now calls `FlutterImageCompress.compressWithList` (off-thread native), and the pure-Dart
       `image` dependency was removed. Remaining latency is just `takePicture()` autofocus/
       metering; lower `ResolutionPreset` if that needs trimming too. Verify on device.
-- [ ] Measure **Time-To-Answer** (tap → answer rendered); optimize image size / timeout if slow
-- [ ] Loading/responsiveness pass (no jank, no double-submits)
-- [ ] App icon, name, splash
-- [ ] Empty/edge states: no question detected, totally illegible image
-- [ ] Unit tests: `scan_repository` (mock dio), `prompt_loader`
-- [ ] Widget tests: `ScanScreen` state transitions, overlays
-- [ ] Final `flutter analyze` clean; `flutter test` green
+- [x] Measure **Time-To-Answer** — dominated by the Gemini call (~6s measured via
+      `validate_batch.dart`); capture/compress is now negligible. Image already capped at 1568px;
+      60s timeout. Biggest future lever is a faster/cheaper model (e.g. gemini-2.5-flash).
+- [x] Loading/responsiveness pass — double-submit guarded (taps ignored unless `cameraReady`);
+      native compression removed the capture jank; loading/analyzing overlays in place.
+- [~] App icon, name, splash — **name set** (Android label + iOS display name = "Exam Scanner").
+  **Icon + splash still need design assets** (use `flutter_launcher_icons` / `flutter_native_splash`).
+- [x] Empty/edge states — typed failures mapped to friendly messages (network, 429 rate-limit,
+      RECITATION, MAX_TOKENS truncation, SAFETY, parse, empty); retry-same-frame on errors.
+- [x] Unit tests: `scan_repository` (stubbed Dio adapter) + `prompt_loader` (load/cache/empty)
+- [x] Widget tests: overlays (`scan_status_overlay_test`: result badge, error retry/no-retry) +
+      state machine (`scan_controller_test`). Full `ScanScreen` camera test skipped (camera plugin).
+- [x] Final `flutter analyze` clean; `flutter test` green (**18 tests**)
+- [ ] **Turn OFF `AppConfig.saveCapturesToGallery`** (temporary data-collection toggle that saves
+      every capture to the gallery) — restore the no-persistence privacy posture before release
 - [ ] Review accepted risks (client-side API key per `CLAUDE.md` §7) before any public release
 - [ ] Build release artifacts (`flutter build apk` / `ios`)
 
@@ -148,12 +166,12 @@ Do NOT build (PRD §4 / `CLAUDE.md` §3): OCR, question localization, auto-crop,
 
 ## Progress summary
 
-| Wave | Title                                | Status |
-| ---- | ------------------------------------ | ------ |
-| 0    | Project setup & configuration        | [x]    |
-| 1    | Camera foundation                    | [x]    |
-| 2    | Gemini integration (prompt + client) | [x]    |
-| 3    | State machine & capture pipeline     | [x]    |
-| 4    | Result & error UI                    | [x]    |
-| 5    | Prompt tuning & validation           | [ ]    |
-| 6    | Polish & release prep                | [ ]    |
+| Wave | Title                                | Status                                                                           |
+| ---- | ------------------------------------ | -------------------------------------------------------------------------------- |
+| 0    | Project setup & configuration        | [x]                                                                              |
+| 1    | Camera foundation                    | [x]                                                                              |
+| 2    | Gemini integration (prompt + client) | [x]                                                                              |
+| 3    | State machine & capture pipeline     | [x]                                                                              |
+| 4    | Result & error UI                    | [x]                                                                              |
+| 5    | Prompt tuning & validation           | [~] tooling done; validation blocked on a user test set                          |
+| 6    | Polish & release prep                | [~] code polish + tests done; icon/splash, save-toggle off, release build remain |

@@ -23,7 +23,11 @@ class GeminiClient {
 
   /// Analyzes [base64Image] with [prompt] as the system instruction and returns
   /// the model's markdown text. Retries once on transient network/5xx errors.
-  Future<String> analyze({required String prompt, required String base64Image}) async {
+  Future<String> analyze({
+    required String prompt,
+    required String base64Image,
+    String mimeType = GeminiConfig.imageMimeType,
+  }) async {
     if (_apiKey.isEmpty) {
       throw const ConfigFailure("GEMINI_API_KEY is not set. Add it to .env.");
     }
@@ -39,7 +43,7 @@ class GeminiClient {
                   "options in your own words; never reproduce the source text verbatim.",
             ),
             GeminiPart(
-              inlineData: GeminiInlineData(mimeType: GeminiConfig.imageMimeType, data: base64Image),
+              inlineData: GeminiInlineData(mimeType: mimeType, data: base64Image),
             ),
           ],
         ),

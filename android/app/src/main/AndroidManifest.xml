@@ -1,9 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="true"/>
+    <!-- Saving captures to the gallery (gal) needs this only on Android 9 and below. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
 
     <application
-        android:label="exam_scanner"
+        android:label="Exam Scanner"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

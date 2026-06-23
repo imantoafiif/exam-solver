@@ -39,10 +39,25 @@ String _section(String md, String header) {
   return re.firstMatch(md)?.group(1)?.trim() ?? "";
 }
 
-/// First A–E letter found in the Best Answer section, or "" if absent.
+/// The answer letter from the Best Answer section, or "" if absent.
+///
+/// Tries the most specific patterns first so prose like "Cloud Run" can't be
+/// mistaken for option "C" (a bare `[A-E]` scan would match the C in "Cloud").
 String _bestAnswer(String md) {
   final String section = _section(md, "Best Answer");
-  return RegExp("[A-E]").firstMatch(section)?.group(0) ?? "";
+  final List<RegExp> patterns = <RegExp>[
+    RegExp(r"\*\*\s*([A-E])\b"), // **C** or **C)
+    RegExp(r"\b([A-E])[).:]"), // C) or C. or C:
+    RegExp(r"answer\s*(?:is|:)?\s*\*{0,2}([A-E])\b", caseSensitive: false),
+    RegExp(r"(?<![A-Za-z])([A-E])(?![A-Za-z])"), // a standalone letter
+  ];
+  for (final RegExp re in patterns) {
+    final RegExpMatch? match = re.firstMatch(section);
+    if (match != null) {
+      return match.group(1)!;
+    }
+  }
+  return "";
 }
 
 /// Normalizes the Confidence section to High / Medium / Low, else "Unknown".
