@@ -71,10 +71,20 @@ Rationale recorded in PRD §6, §7: OCR and image hashing were evaluated and **p
 | HTTP                  | `dio`                                                                                                           |
 | Models / immutability | `freezed` (+ `json_serializable`)                                                                               |
 | State management      | `riverpod` (`flutter_riverpod` / `hooks_riverpod`)                                                              |
-| AI provider           | **Gemini Vision** (preferred). Alternatives behind an interface: GPT Vision, Claude Vision                      |
+| AI provider           | **Gemini Developer API (REST), called directly via `dio`.** Default model `gemini-3.5-flash`                    |
+| Config / secrets      | API key in `.env` (gitignored), loaded with `flutter_dotenv`                                                    |
 | Backend               | **None initially.** Add (Node/Nest/Express) only when auth, billing, caching, or analytics genuinely require it |
 
 Project: package `exam_scanner`, org `id.commsult`, platforms Android + iOS.
+
+### Gemini integration (locked)
+
+- **Model:** `gemini-3.5-flash` — keep as a config constant; swapping to `gemini-flash-latest` or `gemini-2.5-flash` is a one-line change. Do **not** target `gemini-2.0-flash` (sunset June 1, 2026).
+- **SDK choice:** raw REST via `dio`. The `google_generative_ai` Dart package is deprecated; we intentionally do **not** use `firebase_ai` because this project uses a plain Gemini API key, not a Firebase project.
+- **Endpoint:** `POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`
+- **Auth:** pass the key in the `x-goog-api-key` header (not `?key=` in the URL — keeps it out of logs).
+- **Request:** still-frame image → base64 → `contents[].parts[].inline_data` with `mime_type: "image/jpeg"`; user text in the same parts array; the ACE solver + bias-prevention prompt goes in `system_instruction`.
+- **generationConfig:** low `temperature` (~0.2) for consistent reasoning; `maxOutputTokens` ~2048 to fit the full response format (§6).
 
 ---
 
