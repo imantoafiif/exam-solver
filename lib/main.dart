@@ -1,5 +1,4 @@
 import "package:flutter/material.dart";
-import "package:flutter/services.dart";
 import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
@@ -10,8 +9,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Loads the bundled .env asset (gitignored) holding GEMINI_API_KEY.
   await dotenv.load(fileName: ".env");
-  // The MVP is a single portrait, camera-first screen.
-  await SystemChrome.setPreferredOrientations(<DeviceOrientation>[DeviceOrientation.portraitUp]);
+  // No orientation lock: the app supports both portrait and landscape
+  // (constrained by the platform manifests / Info.plist).
   runApp(const ProviderScope(child: ExamScannerApp()));
 }
 

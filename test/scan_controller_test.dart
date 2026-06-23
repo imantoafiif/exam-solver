@@ -12,8 +12,8 @@ import "package:flutter_test/flutter_test.dart";
 class _FakeRepository implements ScanRepository {
   _FakeRepository({this.result, this.failure});
 
-  final AnswerResult? result;
-  final ScanFailure? failure;
+  AnswerResult? result;
+  ScanFailure? failure;
 
   @override
   Future<AnswerResult> analyzeImage(Uint8List jpegBytes) async {
@@ -59,7 +59,7 @@ void main() {
       expect((state as ScanResult).answer.bestAnswer, "B");
     });
 
-    test("a ScanFailure ends in error with its message", () async {
+    test("a ScanFailure ends in error with a friendly message and the frame", () async {
       final ProviderContainer container = _containerWith(
         _FakeRepository(failure: const NetworkFailure("offline")),
       );
@@ -68,7 +68,25 @@ void main() {
 
       final ScanState state = container.read(scanControllerProvider);
       expect(state, isA<ScanError>());
-      expect((state as ScanError).message, "offline");
+      expect((state as ScanError).message, contains("Network"));
+      // Analysis failed (not capture), so the frame is retained for retry.
+      expect(state.frame, isNotNull);
+    });
+
+    test("retry re-analyzes the same frame after an error", () async {
+      final _FakeRepository repo = _FakeRepository(failure: const NetworkFailure("offline"));
+      final ProviderContainer container = _containerWith(repo);
+      final ScanController controller = container.read(scanControllerProvider.notifier);
+
+      await controller.scan(_fakeCapture);
+      expect(container.read(scanControllerProvider), isA<ScanError>());
+
+      // Repo recovers; retry should reuse the frame and succeed.
+      repo
+        ..failure = null
+        ..result = answer;
+      await controller.retry();
+      expect(container.read(scanControllerProvider), isA<ScanResult>());
     });
 
     test("scan is ignored unless idle, and reset returns to cameraReady", () async {

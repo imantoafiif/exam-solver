@@ -1,9 +1,9 @@
 import "dart:developer" as developer;
 import "dart:io";
-import "dart:typed_data";
 
 import "package:camera/camera.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
 import "../../../core/error/failures.dart";
@@ -33,6 +33,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   CameraController? _controller;
   _CameraStatus _status = _CameraStatus.initializing;
   String? _errorMessage;
+
+  // Pinch-to-zoom state.
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  double _currentZoom = 1.0;
+  double _baseZoom = 1.0;
 
   @override
   void initState() {
@@ -90,6 +96,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         await controller.dispose();
         return;
       }
+      _minZoom = await controller.getMinZoomLevel();
+      _maxZoom = await controller.getMaxZoomLevel();
+      _currentZoom = _minZoom;
+      _baseZoom = _minZoom;
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
       setState(() {
         _controller = controller;
         _status = _CameraStatus.ready;
@@ -122,7 +136,29 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     if (ref.read(scanControllerProvider) is! ScanCameraReady) {
       return;
     }
+    HapticFeedback.mediumImpact();
     ref.read(scanControllerProvider.notifier).scan(_captureFrame);
+  }
+
+  void _onScaleStart(ScaleStartDetails details) {
+    _baseZoom = _currentZoom;
+  }
+
+  Future<void> _onScaleUpdate(ScaleUpdateDetails details) async {
+    // Only pinch (2+ pointers) should zoom; ignore single-finger drags.
+    if (details.pointerCount < 2) {
+      return;
+    }
+    final CameraController? controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return;
+    }
+    final double zoom = (_baseZoom * details.scale).clamp(_minZoom, _maxZoom);
+    if (zoom == _currentZoom) {
+      return;
+    }
+    setState(() => _currentZoom = zoom);
+    await controller.setZoomLevel(zoom);
   }
 
   /// Captures a still frame, deletes the temp file (we never persist images),
@@ -149,7 +185,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(onTap: _onTap, behavior: HitTestBehavior.opaque, child: _buildBody()),
+      body: GestureDetector(
+        onTap: _onTap,
+        onScaleStart: _onScaleStart,
+        onScaleUpdate: _onScaleUpdate,
+        behavior: HitTestBehavior.opaque,
+        child: _buildBody(),
+      ),
     );
   }
 
@@ -158,14 +200,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       case _CameraStatus.ready:
         {
           final ScanState scanState = ref.watch(scanControllerProvider);
+          final ScanController notifier = ref.read(scanControllerProvider.notifier);
+          final bool zoomSupported = _maxZoom > _minZoom;
           return Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              CameraView(controller: _controller!),
-              ScanStatusOverlay(
-                state: scanState,
-                onReset: ref.read(scanControllerProvider.notifier).reset,
-              ),
+              _baseLayer(scanState),
+              if (scanState is ScanCameraReady && zoomSupported) _ZoomIndicator(zoom: _currentZoom),
+              ScanStatusOverlay(state: scanState, onReset: notifier.reset, onRetry: notifier.retry),
             ],
           );
         }
@@ -195,6 +237,55 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         );
     }
   }
+
+  /// The layer beneath the overlay: the live preview while idle/capturing, or
+  /// the frozen captured frame once we have one (analyzing / result / error).
+  Widget _baseLayer(ScanState state) {
+    final Uint8List? frame = switch (state) {
+      ScanAnalyzing(:final Uint8List frame) => frame,
+      ScanResult(:final Uint8List frame) => frame,
+      ScanError(:final Uint8List? frame) => frame,
+      ScanCameraReady() || ScanCapturing() => null,
+    };
+    if (frame != null) {
+      // `contain` (not cover) so the frozen capture is shown full-frame,
+      // matching the live preview — a 1:1 representation of what was captured.
+      return Image.memory(frame, fit: BoxFit.contain, gaplessPlayback: true);
+    }
+    return CameraView(controller: _controller!);
+  }
+}
+
+/// Small pill showing the current zoom level. Hint that pinch-to-zoom works.
+class _ZoomIndicator extends StatelessWidget {
+  const _ZoomIndicator({required this.zoom});
+
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Text(
+                "${zoom.toStringAsFixed(1)}×",
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Centered icon + message used for the non-ready camera states.
@@ -214,26 +305,28 @@ class _CameraMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, size: 64, color: Colors.white70),
-            const SizedBox(height: 16),
-            Text(title, style: textTheme.titleLarge, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text(message, style: textTheme.bodyMedium, textAlign: TextAlign.center),
-            if (onRetry != null) ...<Widget>[
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text("Retry"),
-              ),
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(icon, size: 64, color: Colors.white70),
+              const SizedBox(height: 16),
+              Text(title, style: textTheme.titleLarge, textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text(message, style: textTheme.bodyMedium, textAlign: TextAlign.center),
+              if (onRetry != null) ...<Widget>[
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("Retry"),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

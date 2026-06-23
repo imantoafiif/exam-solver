@@ -128,14 +128,14 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  cameraReady,TResult Function()?  capturing,TResult Function()?  analyzing,TResult Function( AnswerResult answer)?  result,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  cameraReady,TResult Function()?  capturing,TResult Function( Uint8List frame)?  analyzing,TResult Function( AnswerResult answer,  Uint8List frame)?  result,TResult Function( String message,  Uint8List? frame)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ScanCameraReady() when cameraReady != null:
 return cameraReady();case ScanCapturing() when capturing != null:
 return capturing();case ScanAnalyzing() when analyzing != null:
-return analyzing();case ScanResult() when result != null:
-return result(_that.answer);case ScanError() when error != null:
-return error(_that.message);case _:
+return analyzing(_that.frame);case ScanResult() when result != null:
+return result(_that.answer,_that.frame);case ScanError() when error != null:
+return error(_that.message,_that.frame);case _:
   return orElse();
 
 }
@@ -153,14 +153,14 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  cameraReady,required TResult Function()  capturing,required TResult Function()  analyzing,required TResult Function( AnswerResult answer)  result,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  cameraReady,required TResult Function()  capturing,required TResult Function( Uint8List frame)  analyzing,required TResult Function( AnswerResult answer,  Uint8List frame)  result,required TResult Function( String message,  Uint8List? frame)  error,}) {final _that = this;
 switch (_that) {
 case ScanCameraReady():
 return cameraReady();case ScanCapturing():
 return capturing();case ScanAnalyzing():
-return analyzing();case ScanResult():
-return result(_that.answer);case ScanError():
-return error(_that.message);}
+return analyzing(_that.frame);case ScanResult():
+return result(_that.answer,_that.frame);case ScanError():
+return error(_that.message,_that.frame);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -174,14 +174,14 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  cameraReady,TResult? Function()?  capturing,TResult? Function()?  analyzing,TResult? Function( AnswerResult answer)?  result,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  cameraReady,TResult? Function()?  capturing,TResult? Function( Uint8List frame)?  analyzing,TResult? Function( AnswerResult answer,  Uint8List frame)?  result,TResult? Function( String message,  Uint8List? frame)?  error,}) {final _that = this;
 switch (_that) {
 case ScanCameraReady() when cameraReady != null:
 return cameraReady();case ScanCapturing() when capturing != null:
 return capturing();case ScanAnalyzing() when analyzing != null:
-return analyzing();case ScanResult() when result != null:
-return result(_that.answer);case ScanError() when error != null:
-return error(_that.message);case _:
+return analyzing(_that.frame);case ScanResult() when result != null:
+return result(_that.answer,_that.frame);case ScanError() when error != null:
+return error(_that.message,_that.frame);case _:
   return null;
 
 }
@@ -257,42 +257,77 @@ String toString() {
 
 
 class ScanAnalyzing implements ScanState {
-  const ScanAnalyzing();
+  const ScanAnalyzing(this.frame);
   
 
+ final  Uint8List frame;
 
-
+/// Create a copy of ScanState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ScanAnalyzingCopyWith<ScanAnalyzing> get copyWith => _$ScanAnalyzingCopyWithImpl<ScanAnalyzing>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanAnalyzing);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanAnalyzing&&const DeepCollectionEquality().equals(other.frame, frame));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(frame));
 
 @override
 String toString() {
-  return 'ScanState.analyzing()';
+  return 'ScanState.analyzing(frame: $frame)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $ScanAnalyzingCopyWith<$Res> implements $ScanStateCopyWith<$Res> {
+  factory $ScanAnalyzingCopyWith(ScanAnalyzing value, $Res Function(ScanAnalyzing) _then) = _$ScanAnalyzingCopyWithImpl;
+@useResult
+$Res call({
+ Uint8List frame
+});
 
 
+
+
+}
+/// @nodoc
+class _$ScanAnalyzingCopyWithImpl<$Res>
+    implements $ScanAnalyzingCopyWith<$Res> {
+  _$ScanAnalyzingCopyWithImpl(this._self, this._then);
+
+  final ScanAnalyzing _self;
+  final $Res Function(ScanAnalyzing) _then;
+
+/// Create a copy of ScanState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? frame = null,}) {
+  return _then(ScanAnalyzing(
+null == frame ? _self.frame : frame // ignore: cast_nullable_to_non_nullable
+as Uint8List,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
 
 class ScanResult implements ScanState {
-  const ScanResult(this.answer);
+  const ScanResult(this.answer, this.frame);
   
 
  final  AnswerResult answer;
+ final  Uint8List frame;
 
 /// Create a copy of ScanState
 /// with the given fields replaced by the non-null parameter values.
@@ -304,16 +339,16 @@ $ScanResultCopyWith<ScanResult> get copyWith => _$ScanResultCopyWithImpl<ScanRes
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanResult&&(identical(other.answer, answer) || other.answer == answer));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanResult&&(identical(other.answer, answer) || other.answer == answer)&&const DeepCollectionEquality().equals(other.frame, frame));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,answer);
+int get hashCode => Object.hash(runtimeType,answer,const DeepCollectionEquality().hash(frame));
 
 @override
 String toString() {
-  return 'ScanState.result(answer: $answer)';
+  return 'ScanState.result(answer: $answer, frame: $frame)';
 }
 
 
@@ -324,7 +359,7 @@ abstract mixin class $ScanResultCopyWith<$Res> implements $ScanStateCopyWith<$Re
   factory $ScanResultCopyWith(ScanResult value, $Res Function(ScanResult) _then) = _$ScanResultCopyWithImpl;
 @useResult
 $Res call({
- AnswerResult answer
+ AnswerResult answer, Uint8List frame
 });
 
 
@@ -341,10 +376,11 @@ class _$ScanResultCopyWithImpl<$Res>
 
 /// Create a copy of ScanState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? answer = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? answer = null,Object? frame = null,}) {
   return _then(ScanResult(
 null == answer ? _self.answer : answer // ignore: cast_nullable_to_non_nullable
-as AnswerResult,
+as AnswerResult,null == frame ? _self.frame : frame // ignore: cast_nullable_to_non_nullable
+as Uint8List,
   ));
 }
 
@@ -364,10 +400,11 @@ $AnswerResultCopyWith<$Res> get answer {
 
 
 class ScanError implements ScanState {
-  const ScanError(this.message);
+  const ScanError(this.message, {this.frame});
   
 
  final  String message;
+ final  Uint8List? frame;
 
 /// Create a copy of ScanState
 /// with the given fields replaced by the non-null parameter values.
@@ -379,16 +416,16 @@ $ScanErrorCopyWith<ScanError> get copyWith => _$ScanErrorCopyWithImpl<ScanError>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanError&&(identical(other.message, message) || other.message == message));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanError&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.frame, frame));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode => Object.hash(runtimeType,message,const DeepCollectionEquality().hash(frame));
 
 @override
 String toString() {
-  return 'ScanState.error(message: $message)';
+  return 'ScanState.error(message: $message, frame: $frame)';
 }
 
 
@@ -399,7 +436,7 @@ abstract mixin class $ScanErrorCopyWith<$Res> implements $ScanStateCopyWith<$Res
   factory $ScanErrorCopyWith(ScanError value, $Res Function(ScanError) _then) = _$ScanErrorCopyWithImpl;
 @useResult
 $Res call({
- String message
+ String message, Uint8List? frame
 });
 
 
@@ -416,10 +453,11 @@ class _$ScanErrorCopyWithImpl<$Res>
 
 /// Create a copy of ScanState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? message = null,Object? frame = freezed,}) {
   return _then(ScanError(
 null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+as String,frame: freezed == frame ? _self.frame : frame // ignore: cast_nullable_to_non_nullable
+as Uint8List?,
   ));
 }
 

@@ -23,21 +23,61 @@ class ScanController extends Notifier<ScanState> {
       return;
     }
     state = const ScanState.capturing();
+    final Uint8List frame;
     try {
-      final Uint8List bytes = await capture();
-      state = const ScanState.analyzing();
-      final AnswerResult answer = await ref.read(scanRepositoryProvider).analyzeImage(bytes);
-      state = ScanState.result(answer);
+      frame = await capture();
     } on ScanFailure catch (e) {
-      state = ScanState.error(e.message);
+      state = ScanState.error(_friendlyMessage(e));
+      return;
     } on Object catch (e, stackTrace) {
-      developer.log("Scan failed", name: "ScanController", error: e, stackTrace: stackTrace);
-      state = ScanState.error("Something went wrong. Please try again.");
+      developer.log("Capture failed", name: "ScanController", error: e, stackTrace: stackTrace);
+      state = const ScanState.error("Couldn't capture the image. Please try again.");
+      return;
+    }
+    await _analyze(frame);
+  }
+
+  /// Retries analysis on the already-captured frame (after an error), avoiding a
+  /// re-capture. Falls back to [reset] if there is no frame to retry.
+  Future<void> retry() async {
+    final ScanState current = state;
+    if (current is ScanError && current.frame != null) {
+      await _analyze(current.frame!);
+    } else {
+      reset();
     }
   }
 
   /// Returns to the idle live-camera state.
   void reset() => state = const ScanState.cameraReady();
+
+  Future<void> _analyze(Uint8List frame) async {
+    state = ScanState.analyzing(frame);
+    try {
+      final AnswerResult answer = await ref.read(scanRepositoryProvider).analyzeImage(frame);
+      state = ScanState.result(answer, frame);
+    } on ScanFailure catch (e) {
+      state = ScanState.error(_friendlyMessage(e), frame: frame);
+    } on Object catch (e, stackTrace) {
+      developer.log("Analysis failed", name: "ScanController", error: e, stackTrace: stackTrace);
+      state = ScanState.error("Something went wrong. Please try again.", frame: frame);
+    }
+  }
+
+  /// Maps a typed failure to a concise, user-facing message.
+  String _friendlyMessage(ScanFailure failure) {
+    return switch (failure) {
+      ConfigFailure() => failure.message,
+      NetworkFailure() => "Network problem. Check your connection and try again.",
+      ApiFailure(:final int? statusCode) =>
+        statusCode == 429
+            ? "You're scanning too fast or hit today's limit. Wait a moment and try again."
+            : "The AI service had a problem. Please try again.",
+      RecitationFailure() => failure.message,
+      EmptyResponseFailure() => failure.message,
+      ParseFailure() => "Couldn't read the AI's response. Please try again.",
+    };
+  }
 }
 
 /// The scan flow controller the screen watches and drives.

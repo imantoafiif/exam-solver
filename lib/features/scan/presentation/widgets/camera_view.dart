@@ -13,22 +13,14 @@ class CameraView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Size? previewSize = controller.value.previewSize;
-    if (previewSize == null) {
+    if (!controller.value.isInitialized) {
       return const ColoredBox(color: Colors.black);
     }
 
-    return ClipRect(
-      child: SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: previewSize.height,
-            height: previewSize.width,
-            child: CameraPreview(controller),
-          ),
-        ),
-      ),
-    );
+    // `CameraPreview` is already an orientation-aware `AspectRatio`. Centering
+    // it (instead of cover-cropping) shows the FULL sensor frame, letterboxed —
+    // so what the user sees matches what `takePicture()` captures (WYSIWYG),
+    // and it isn't over-zoomed in landscape.
+    return Center(child: CameraPreview(controller));
   }
 }

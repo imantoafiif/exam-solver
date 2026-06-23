@@ -63,17 +63,17 @@ Rationale recorded in PRD §6, §7: OCR and image hashing were evaluated and **p
 
 ## 4. Technology stack
 
-| Layer                 | Choice                                                                                                          |
-| --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Framework             | Flutter (stable 3.44.x), Dart 3.12.x                                                                            |
-| Camera                | `camera`                                                                                                        |
-| Image handling        | `image`                                                                                                         |
-| HTTP                  | `dio`                                                                                                           |
-| Models / immutability | `freezed` (+ `json_serializable`)                                                                               |
-| State management      | `riverpod` (`flutter_riverpod` / `hooks_riverpod`)                                                              |
-| AI provider           | **Gemini Developer API (REST), called directly via `dio`.** Default model `gemini-3.5-flash`                    |
-| Config / secrets      | API key in `.env` (gitignored), loaded with `flutter_dotenv`                                                    |
-| Backend               | **None initially.** Add (Node/Nest/Express) only when auth, billing, caching, or analytics genuinely require it |
+| Layer                 | Choice                                                                                                                        |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Framework             | Flutter (stable 3.44.x), Dart 3.12.x                                                                                          |
+| Camera                | `camera`                                                                                                                      |
+| Image handling        | `flutter_image_compress` (native, hardware-accelerated JPEG downscale/compress; replaced pure-Dart `image` for capture speed) |
+| HTTP                  | `dio`                                                                                                                         |
+| Models / immutability | `freezed` (+ `json_serializable`)                                                                                             |
+| State management      | `riverpod` (`flutter_riverpod` / `hooks_riverpod`)                                                                            |
+| AI provider           | **Gemini Developer API (REST), called directly via `dio`.** Default model `gemini-3.5-flash`                                  |
+| Config / secrets      | API key in `.env` (gitignored), loaded with `flutter_dotenv`                                                                  |
+| Backend               | **None initially.** Add (Node/Nest/Express) only when auth, billing, caching, or analytics genuinely require it               |
 
 Project: package `exam_scanner`, org `id.commsult`, platforms Android + iOS.
 

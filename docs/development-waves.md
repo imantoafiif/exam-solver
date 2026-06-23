@@ -86,15 +86,16 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
 
 **Goal:** the answer is displayed over the frozen frame; errors are recoverable.
 
-- [ ] `features/scan/presentation/widgets/loading_overlay.dart` — dimmed frame + "Analyzing…"
-- [ ] `features/scan/presentation/widgets/answer_panel.dart` — scrollable markdown render of the §18 response, best-answer emphasized
-- [ ] Freeze/show the captured frame behind the answer panel
-- [ ] `features/scan/presentation/widgets/error_overlay.dart` — message + Retry + Dismiss
-- [ ] Dismiss (scrim tap + ✕ button) → reset to `cameraReady`
-- [ ] Shutter feedback on capture; subtle "tap to scan" hint in `cameraReady`
-- [ ] Map failure types (network, api, parse, camera) to friendly messages
+- [x] `features/scan/presentation/widgets/loading_overlay.dart` — dimmed frame + "Analyzing…"
+- [x] `features/scan/presentation/widgets/answer_panel.dart` — scrollable markdown (`flutter_markdown_plus`), best-answer + confidence badges, bottom sheet
+- [x] Freeze/show the captured frame behind the answer panel (frame carried in `ScanState`, rendered by `_baseLayer`)
+- [x] `features/scan/presentation/widgets/error_overlay.dart` — message + Retry (re-analyzes same frame) + Back to camera
+- [x] Dismiss (scrim tap + ✕ button) → reset to `cameraReady`
+- [x] Shutter feedback on capture (haptic + white flash); subtle "tap to scan" hint in `cameraReady`
+- [x] Map failure types (network, api/429, parse, recitation, config) to friendly messages (`_friendlyMessage`)
 
 **Done when:** full loop works on device — tap → loading → readable answer overlay → dismiss → back to live camera; errors show Retry and recover.
+**Gate status:** ✅ `flutter analyze` clean · ✅ `flutter test` green (8 tests, incl. retry-same-frame) · ⏳ on-device review pending.
 
 ---
 
@@ -118,6 +119,13 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
 
 **Goal:** stable, measurable, shippable MVP.
 
+- [x] **Speed up the "Capturing…" step (capture-pipeline latency, ~1.5s observed).** Root
+      cause was our post-processing, not the camera: the pure-Dart `image` package decode →
+      resize → re-encode (which ran even when no resize was needed). **Resolved by switching to
+      native, hardware-accelerated compression (`flutter_image_compress`)** — `compressJpeg`
+      now calls `FlutterImageCompress.compressWithList` (off-thread native), and the pure-Dart
+      `image` dependency was removed. Remaining latency is just `takePicture()` autofocus/
+      metering; lower `ResolutionPreset` if that needs trimming too. Verify on device.
 - [ ] Measure **Time-To-Answer** (tap → answer rendered); optimize image size / timeout if slow
 - [ ] Loading/responsiveness pass (no jank, no double-submits)
 - [ ] App icon, name, splash
@@ -146,6 +154,6 @@ Do NOT build (PRD §4 / `CLAUDE.md` §3): OCR, question localization, auto-crop,
 | 1    | Camera foundation                    | [x]    |
 | 2    | Gemini integration (prompt + client) | [x]    |
 | 3    | State machine & capture pipeline     | [x]    |
-| 4    | Result & error UI                    | [ ]    |
+| 4    | Result & error UI                    | [x]    |
 | 5    | Prompt tuning & validation           | [ ]    |
 | 6    | Polish & release prep                | [ ]    |
