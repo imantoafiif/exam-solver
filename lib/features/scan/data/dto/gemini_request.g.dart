@@ -28,14 +28,14 @@ Map<String, dynamic> _$GeminiRequestToJson(_GeminiRequest instance) =>
 
 _GeminiContent _$GeminiContentFromJson(Map<String, dynamic> json) =>
     _GeminiContent(
-      parts: (json['parts'] as List<dynamic>)
-          .map((e) => GeminiPart.fromJson(e as Map<String, dynamic>))
+      parts: (json['parts'] as List<dynamic>?)
+          ?.map((e) => GeminiPart.fromJson(e as Map<String, dynamic>))
           .toList(),
       role: json['role'] as String?,
     );
 
 Map<String, dynamic> _$GeminiContentToJson(_GeminiContent instance) =>
-    <String, dynamic>{'parts': instance.parts, 'role': ?instance.role};
+    <String, dynamic>{'parts': ?instance.parts, 'role': ?instance.role};
 
 _GeminiPart _$GeminiPartFromJson(Map<String, dynamic> json) => _GeminiPart(
   text: json['text'] as String?,
@@ -64,6 +64,11 @@ _GeminiGenerationConfig _$GeminiGenerationConfigFromJson(
 ) => _GeminiGenerationConfig(
   temperature: (json['temperature'] as num).toDouble(),
   maxOutputTokens: (json['maxOutputTokens'] as num).toInt(),
+  thinkingConfig: json['thinkingConfig'] == null
+      ? null
+      : GeminiThinkingConfig.fromJson(
+          json['thinkingConfig'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$GeminiGenerationConfigToJson(
@@ -71,4 +76,15 @@ Map<String, dynamic> _$GeminiGenerationConfigToJson(
 ) => <String, dynamic>{
   'temperature': instance.temperature,
   'maxOutputTokens': instance.maxOutputTokens,
+  'thinkingConfig': ?instance.thinkingConfig,
 };
+
+_GeminiThinkingConfig _$GeminiThinkingConfigFromJson(
+  Map<String, dynamic> json,
+) => _GeminiThinkingConfig(
+  thinkingBudget: (json['thinkingBudget'] as num).toInt(),
+);
+
+Map<String, dynamic> _$GeminiThinkingConfigToJson(
+  _GeminiThinkingConfig instance,
+) => <String, dynamic>{'thinkingBudget': instance.thinkingBudget};

@@ -20,7 +20,9 @@ abstract class GeminiRequest with _$GeminiRequest {
 @freezed
 abstract class GeminiContent with _$GeminiContent {
   const factory GeminiContent({
-    required List<GeminiPart> parts,
+    // Nullable: a thinking-only / truncated response may return a content block
+    // with no parts, which must not break decoding.
+    @JsonKey(includeIfNull: false) List<GeminiPart>? parts,
     @JsonKey(includeIfNull: false) String? role,
   }) = _GeminiContent;
 
@@ -55,8 +57,19 @@ abstract class GeminiGenerationConfig with _$GeminiGenerationConfig {
   const factory GeminiGenerationConfig({
     required double temperature,
     required int maxOutputTokens,
+    @JsonKey(includeIfNull: false) GeminiThinkingConfig? thinkingConfig,
   }) = _GeminiGenerationConfig;
 
   factory GeminiGenerationConfig.fromJson(Map<String, dynamic> json) =>
       _$GeminiGenerationConfigFromJson(json);
+}
+
+/// Controls the model's internal "thinking". A [thinkingBudget] of 0 disables
+/// thinking so the whole output budget goes to the visible answer.
+@freezed
+abstract class GeminiThinkingConfig with _$GeminiThinkingConfig {
+  const factory GeminiThinkingConfig({required int thinkingBudget}) = _GeminiThinkingConfig;
+
+  factory GeminiThinkingConfig.fromJson(Map<String, dynamic> json) =>
+      _$GeminiThinkingConfigFromJson(json);
 }

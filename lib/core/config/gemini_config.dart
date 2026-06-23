@@ -22,8 +22,17 @@ class GeminiConfig {
   /// Low temperature -> consistent, accurate reasoning over creativity.
   static const double temperature = 0.2;
 
-  /// Enough room for the full response format (PRD section 18).
-  static const int maxOutputTokens = 2048;
+  /// Room for the full response format (PRD section 18). Must be generous:
+  /// the §18 answer (reconstructed question + option analysis + explanation)
+  /// is long, and any thinking tokens share this budget.
+  static const int maxOutputTokens = 4096;
+
+  /// Thinking-token budget for the model. 0 disables internal "thinking" so the
+  /// whole [maxOutputTokens] budget goes to the visible answer — faster and
+  /// avoids MAX_TOKENS truncation. Our prompt already forces explicit
+  /// option-by-option reasoning in the output. Raise this in tuning (Wave 5) if
+  /// answer accuracy needs deeper internal reasoning.
+  static const int thinkingBudget = 0;
 
   /// MIME type used when sending the captured frame as inline image data.
   static const String imageMimeType = "image/jpeg";

@@ -1,18 +1,27 @@
 import "dart:developer" as developer;
+import "dart:io";
+import "dart:typed_data";
 
 import "package:camera/camera.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
+import "../../../core/error/failures.dart";
+import "../data/image_compressor.dart";
+import "scan_controller.dart";
+import "scan_state.dart";
 import "widgets/camera_view.dart";
+import "widgets/scan_status_overlay.dart";
 
 /// Lifecycle status of the camera foundation on [ScanScreen].
 enum _CameraStatus { initializing, ready, denied, noCamera, error }
 
 /// The single, full-screen, camera-first screen of the app.
 ///
-/// Wave 1: opens straight into a live full-screen preview and detects taps.
-/// Capture and AI analysis are wired in later waves (the tap currently logs).
+/// The screen owns the [CameraController] (a lifecycle-bound platform
+/// resource); the scan flow state machine lives in [scanControllerProvider].
+/// On tap it hands the controller a capture callback so the state machine never
+/// touches the camera plugin directly.
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
 
@@ -108,8 +117,32 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     if (_status != _CameraStatus.ready) {
       return;
     }
-    // Wave 3 wires this to capture -> compress -> Gemini analysis.
-    developer.log("tap captured -> capture frame (wired in Wave 3)", name: "ScanScreen");
+    // Only start a scan when idle — ignore taps while capturing / analyzing /
+    // showing a result or error.
+    if (ref.read(scanControllerProvider) is! ScanCameraReady) {
+      return;
+    }
+    ref.read(scanControllerProvider.notifier).scan(_captureFrame);
+  }
+
+  /// Captures a still frame, deletes the temp file (we never persist images),
+  /// and returns compressed JPEG bytes ready for upload.
+  Future<Uint8List> _captureFrame() async {
+    final CameraController? controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      throw const ConfigFailure("Camera is not ready.");
+    }
+    final XFile shot = await controller.takePicture();
+    final Uint8List raw = await shot.readAsBytes();
+    try {
+      final File temp = File(shot.path);
+      if (await temp.exists()) {
+        await temp.delete();
+      }
+    } on Object {
+      // Best-effort cleanup; a leftover temp file is non-fatal.
+    }
+    return compressJpeg(raw);
   }
 
   @override
@@ -123,13 +156,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Widget _buildBody() {
     switch (_status) {
       case _CameraStatus.ready:
-        return Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            CameraView(controller: _controller!),
-            const _TapHint(),
-          ],
-        );
+        {
+          final ScanState scanState = ref.watch(scanControllerProvider);
+          return Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              CameraView(controller: _controller!),
+              ScanStatusOverlay(
+                state: scanState,
+                onReset: ref.read(scanControllerProvider.notifier).reset,
+              ),
+            ],
+          );
+        }
       case _CameraStatus.initializing:
         return const Center(child: CircularProgressIndicator());
       case _CameraStatus.denied:
@@ -155,31 +194,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
           onRetry: _initCamera,
         );
     }
-  }
-}
-
-/// Subtle hint shown over the live preview telling the user what to do.
-class _TapHint extends StatelessWidget {
-  const _TapHint();
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 48),
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(24)),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Text(
-              "Tap anywhere to scan",
-              style: TextStyle(color: Colors.white, fontSize: 14),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 

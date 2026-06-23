@@ -326,7 +326,7 @@ $GeminiGenerationConfigCopyWith<$Res> get generationConfig {
 /// @nodoc
 mixin _$GeminiContent {
 
- List<GeminiPart> get parts;@JsonKey(includeIfNull: false) String? get role;
+@JsonKey(includeIfNull: false) List<GeminiPart>? get parts;@JsonKey(includeIfNull: false) String? get role;
 /// Create a copy of GeminiContent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -359,7 +359,7 @@ abstract mixin class $GeminiContentCopyWith<$Res>  {
   factory $GeminiContentCopyWith(GeminiContent value, $Res Function(GeminiContent) _then) = _$GeminiContentCopyWithImpl;
 @useResult
 $Res call({
- List<GeminiPart> parts,@JsonKey(includeIfNull: false) String? role
+@JsonKey(includeIfNull: false) List<GeminiPart>? parts,@JsonKey(includeIfNull: false) String? role
 });
 
 
@@ -376,10 +376,10 @@ class _$GeminiContentCopyWithImpl<$Res>
 
 /// Create a copy of GeminiContent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? parts = null,Object? role = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? parts = freezed,Object? role = freezed,}) {
   return _then(_self.copyWith(
-parts: null == parts ? _self.parts : parts // ignore: cast_nullable_to_non_nullable
-as List<GeminiPart>,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+parts: freezed == parts ? _self.parts : parts // ignore: cast_nullable_to_non_nullable
+as List<GeminiPart>?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -465,7 +465,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<GeminiPart> parts, @JsonKey(includeIfNull: false)  String? role)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  List<GeminiPart>? parts, @JsonKey(includeIfNull: false)  String? role)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GeminiContent() when $default != null:
 return $default(_that.parts,_that.role);case _:
@@ -486,7 +486,7 @@ return $default(_that.parts,_that.role);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<GeminiPart> parts, @JsonKey(includeIfNull: false)  String? role)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  List<GeminiPart>? parts, @JsonKey(includeIfNull: false)  String? role)  $default,) {final _that = this;
 switch (_that) {
 case _GeminiContent():
 return $default(_that.parts,_that.role);case _:
@@ -506,7 +506,7 @@ return $default(_that.parts,_that.role);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<GeminiPart> parts, @JsonKey(includeIfNull: false)  String? role)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(includeIfNull: false)  List<GeminiPart>? parts, @JsonKey(includeIfNull: false)  String? role)?  $default,) {final _that = this;
 switch (_that) {
 case _GeminiContent() when $default != null:
 return $default(_that.parts,_that.role);case _:
@@ -521,14 +521,16 @@ return $default(_that.parts,_that.role);case _:
 @JsonSerializable()
 
 class _GeminiContent implements GeminiContent {
-  const _GeminiContent({required final  List<GeminiPart> parts, @JsonKey(includeIfNull: false) this.role}): _parts = parts;
+  const _GeminiContent({@JsonKey(includeIfNull: false) final  List<GeminiPart>? parts, @JsonKey(includeIfNull: false) this.role}): _parts = parts;
   factory _GeminiContent.fromJson(Map<String, dynamic> json) => _$GeminiContentFromJson(json);
 
- final  List<GeminiPart> _parts;
-@override List<GeminiPart> get parts {
+ final  List<GeminiPart>? _parts;
+@override@JsonKey(includeIfNull: false) List<GeminiPart>? get parts {
+  final value = _parts;
+  if (value == null) return null;
   if (_parts is EqualUnmodifiableListView) return _parts;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_parts);
+  return EqualUnmodifiableListView(value);
 }
 
 @override@JsonKey(includeIfNull: false) final  String? role;
@@ -566,7 +568,7 @@ abstract mixin class _$GeminiContentCopyWith<$Res> implements $GeminiContentCopy
   factory _$GeminiContentCopyWith(_GeminiContent value, $Res Function(_GeminiContent) _then) = __$GeminiContentCopyWithImpl;
 @override @useResult
 $Res call({
- List<GeminiPart> parts,@JsonKey(includeIfNull: false) String? role
+@JsonKey(includeIfNull: false) List<GeminiPart>? parts,@JsonKey(includeIfNull: false) String? role
 });
 
 
@@ -583,10 +585,10 @@ class __$GeminiContentCopyWithImpl<$Res>
 
 /// Create a copy of GeminiContent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? parts = null,Object? role = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? parts = freezed,Object? role = freezed,}) {
   return _then(_GeminiContent(
-parts: null == parts ? _self._parts : parts // ignore: cast_nullable_to_non_nullable
-as List<GeminiPart>,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+parts: freezed == parts ? _self._parts : parts // ignore: cast_nullable_to_non_nullable
+as List<GeminiPart>?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1154,7 +1156,7 @@ as String,
 /// @nodoc
 mixin _$GeminiGenerationConfig {
 
- double get temperature; int get maxOutputTokens;
+ double get temperature; int get maxOutputTokens;@JsonKey(includeIfNull: false) GeminiThinkingConfig? get thinkingConfig;
 /// Create a copy of GeminiGenerationConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1167,16 +1169,16 @@ $GeminiGenerationConfigCopyWith<GeminiGenerationConfig> get copyWith => _$Gemini
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeminiGenerationConfig&&(identical(other.temperature, temperature) || other.temperature == temperature)&&(identical(other.maxOutputTokens, maxOutputTokens) || other.maxOutputTokens == maxOutputTokens));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeminiGenerationConfig&&(identical(other.temperature, temperature) || other.temperature == temperature)&&(identical(other.maxOutputTokens, maxOutputTokens) || other.maxOutputTokens == maxOutputTokens)&&(identical(other.thinkingConfig, thinkingConfig) || other.thinkingConfig == thinkingConfig));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,temperature,maxOutputTokens);
+int get hashCode => Object.hash(runtimeType,temperature,maxOutputTokens,thinkingConfig);
 
 @override
 String toString() {
-  return 'GeminiGenerationConfig(temperature: $temperature, maxOutputTokens: $maxOutputTokens)';
+  return 'GeminiGenerationConfig(temperature: $temperature, maxOutputTokens: $maxOutputTokens, thinkingConfig: $thinkingConfig)';
 }
 
 
@@ -1187,11 +1189,11 @@ abstract mixin class $GeminiGenerationConfigCopyWith<$Res>  {
   factory $GeminiGenerationConfigCopyWith(GeminiGenerationConfig value, $Res Function(GeminiGenerationConfig) _then) = _$GeminiGenerationConfigCopyWithImpl;
 @useResult
 $Res call({
- double temperature, int maxOutputTokens
+ double temperature, int maxOutputTokens,@JsonKey(includeIfNull: false) GeminiThinkingConfig? thinkingConfig
 });
 
 
-
+$GeminiThinkingConfigCopyWith<$Res>? get thinkingConfig;
 
 }
 /// @nodoc
@@ -1204,14 +1206,27 @@ class _$GeminiGenerationConfigCopyWithImpl<$Res>
 
 /// Create a copy of GeminiGenerationConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? temperature = null,Object? maxOutputTokens = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? temperature = null,Object? maxOutputTokens = null,Object? thinkingConfig = freezed,}) {
   return _then(_self.copyWith(
 temperature: null == temperature ? _self.temperature : temperature // ignore: cast_nullable_to_non_nullable
 as double,maxOutputTokens: null == maxOutputTokens ? _self.maxOutputTokens : maxOutputTokens // ignore: cast_nullable_to_non_nullable
-as int,
+as int,thinkingConfig: freezed == thinkingConfig ? _self.thinkingConfig : thinkingConfig // ignore: cast_nullable_to_non_nullable
+as GeminiThinkingConfig?,
   ));
 }
+/// Create a copy of GeminiGenerationConfig
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$GeminiThinkingConfigCopyWith<$Res>? get thinkingConfig {
+    if (_self.thinkingConfig == null) {
+    return null;
+  }
 
+  return $GeminiThinkingConfigCopyWith<$Res>(_self.thinkingConfig!, (value) {
+    return _then(_self.copyWith(thinkingConfig: value));
+  });
+}
 }
 
 
@@ -1293,10 +1308,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double temperature,  int maxOutputTokens)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double temperature,  int maxOutputTokens, @JsonKey(includeIfNull: false)  GeminiThinkingConfig? thinkingConfig)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GeminiGenerationConfig() when $default != null:
-return $default(_that.temperature,_that.maxOutputTokens);case _:
+return $default(_that.temperature,_that.maxOutputTokens,_that.thinkingConfig);case _:
   return orElse();
 
 }
@@ -1314,10 +1329,10 @@ return $default(_that.temperature,_that.maxOutputTokens);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double temperature,  int maxOutputTokens)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double temperature,  int maxOutputTokens, @JsonKey(includeIfNull: false)  GeminiThinkingConfig? thinkingConfig)  $default,) {final _that = this;
 switch (_that) {
 case _GeminiGenerationConfig():
-return $default(_that.temperature,_that.maxOutputTokens);case _:
+return $default(_that.temperature,_that.maxOutputTokens,_that.thinkingConfig);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1334,10 +1349,10 @@ return $default(_that.temperature,_that.maxOutputTokens);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double temperature,  int maxOutputTokens)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double temperature,  int maxOutputTokens, @JsonKey(includeIfNull: false)  GeminiThinkingConfig? thinkingConfig)?  $default,) {final _that = this;
 switch (_that) {
 case _GeminiGenerationConfig() when $default != null:
-return $default(_that.temperature,_that.maxOutputTokens);case _:
+return $default(_that.temperature,_that.maxOutputTokens,_that.thinkingConfig);case _:
   return null;
 
 }
@@ -1349,11 +1364,12 @@ return $default(_that.temperature,_that.maxOutputTokens);case _:
 @JsonSerializable()
 
 class _GeminiGenerationConfig implements GeminiGenerationConfig {
-  const _GeminiGenerationConfig({required this.temperature, required this.maxOutputTokens});
+  const _GeminiGenerationConfig({required this.temperature, required this.maxOutputTokens, @JsonKey(includeIfNull: false) this.thinkingConfig});
   factory _GeminiGenerationConfig.fromJson(Map<String, dynamic> json) => _$GeminiGenerationConfigFromJson(json);
 
 @override final  double temperature;
 @override final  int maxOutputTokens;
+@override@JsonKey(includeIfNull: false) final  GeminiThinkingConfig? thinkingConfig;
 
 /// Create a copy of GeminiGenerationConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -1368,16 +1384,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeminiGenerationConfig&&(identical(other.temperature, temperature) || other.temperature == temperature)&&(identical(other.maxOutputTokens, maxOutputTokens) || other.maxOutputTokens == maxOutputTokens));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeminiGenerationConfig&&(identical(other.temperature, temperature) || other.temperature == temperature)&&(identical(other.maxOutputTokens, maxOutputTokens) || other.maxOutputTokens == maxOutputTokens)&&(identical(other.thinkingConfig, thinkingConfig) || other.thinkingConfig == thinkingConfig));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,temperature,maxOutputTokens);
+int get hashCode => Object.hash(runtimeType,temperature,maxOutputTokens,thinkingConfig);
 
 @override
 String toString() {
-  return 'GeminiGenerationConfig(temperature: $temperature, maxOutputTokens: $maxOutputTokens)';
+  return 'GeminiGenerationConfig(temperature: $temperature, maxOutputTokens: $maxOutputTokens, thinkingConfig: $thinkingConfig)';
 }
 
 
@@ -1388,11 +1404,11 @@ abstract mixin class _$GeminiGenerationConfigCopyWith<$Res> implements $GeminiGe
   factory _$GeminiGenerationConfigCopyWith(_GeminiGenerationConfig value, $Res Function(_GeminiGenerationConfig) _then) = __$GeminiGenerationConfigCopyWithImpl;
 @override @useResult
 $Res call({
- double temperature, int maxOutputTokens
+ double temperature, int maxOutputTokens,@JsonKey(includeIfNull: false) GeminiThinkingConfig? thinkingConfig
 });
 
 
-
+@override $GeminiThinkingConfigCopyWith<$Res>? get thinkingConfig;
 
 }
 /// @nodoc
@@ -1405,10 +1421,286 @@ class __$GeminiGenerationConfigCopyWithImpl<$Res>
 
 /// Create a copy of GeminiGenerationConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? temperature = null,Object? maxOutputTokens = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? temperature = null,Object? maxOutputTokens = null,Object? thinkingConfig = freezed,}) {
   return _then(_GeminiGenerationConfig(
 temperature: null == temperature ? _self.temperature : temperature // ignore: cast_nullable_to_non_nullable
 as double,maxOutputTokens: null == maxOutputTokens ? _self.maxOutputTokens : maxOutputTokens // ignore: cast_nullable_to_non_nullable
+as int,thinkingConfig: freezed == thinkingConfig ? _self.thinkingConfig : thinkingConfig // ignore: cast_nullable_to_non_nullable
+as GeminiThinkingConfig?,
+  ));
+}
+
+/// Create a copy of GeminiGenerationConfig
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$GeminiThinkingConfigCopyWith<$Res>? get thinkingConfig {
+    if (_self.thinkingConfig == null) {
+    return null;
+  }
+
+  return $GeminiThinkingConfigCopyWith<$Res>(_self.thinkingConfig!, (value) {
+    return _then(_self.copyWith(thinkingConfig: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$GeminiThinkingConfig {
+
+ int get thinkingBudget;
+/// Create a copy of GeminiThinkingConfig
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GeminiThinkingConfigCopyWith<GeminiThinkingConfig> get copyWith => _$GeminiThinkingConfigCopyWithImpl<GeminiThinkingConfig>(this as GeminiThinkingConfig, _$identity);
+
+  /// Serializes this GeminiThinkingConfig to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeminiThinkingConfig&&(identical(other.thinkingBudget, thinkingBudget) || other.thinkingBudget == thinkingBudget));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,thinkingBudget);
+
+@override
+String toString() {
+  return 'GeminiThinkingConfig(thinkingBudget: $thinkingBudget)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GeminiThinkingConfigCopyWith<$Res>  {
+  factory $GeminiThinkingConfigCopyWith(GeminiThinkingConfig value, $Res Function(GeminiThinkingConfig) _then) = _$GeminiThinkingConfigCopyWithImpl;
+@useResult
+$Res call({
+ int thinkingBudget
+});
+
+
+
+
+}
+/// @nodoc
+class _$GeminiThinkingConfigCopyWithImpl<$Res>
+    implements $GeminiThinkingConfigCopyWith<$Res> {
+  _$GeminiThinkingConfigCopyWithImpl(this._self, this._then);
+
+  final GeminiThinkingConfig _self;
+  final $Res Function(GeminiThinkingConfig) _then;
+
+/// Create a copy of GeminiThinkingConfig
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? thinkingBudget = null,}) {
+  return _then(_self.copyWith(
+thinkingBudget: null == thinkingBudget ? _self.thinkingBudget : thinkingBudget // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [GeminiThinkingConfig].
+extension GeminiThinkingConfigPatterns on GeminiThinkingConfig {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _GeminiThinkingConfig value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _GeminiThinkingConfig() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _GeminiThinkingConfig value)  $default,){
+final _that = this;
+switch (_that) {
+case _GeminiThinkingConfig():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _GeminiThinkingConfig value)?  $default,){
+final _that = this;
+switch (_that) {
+case _GeminiThinkingConfig() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int thinkingBudget)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _GeminiThinkingConfig() when $default != null:
+return $default(_that.thinkingBudget);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int thinkingBudget)  $default,) {final _that = this;
+switch (_that) {
+case _GeminiThinkingConfig():
+return $default(_that.thinkingBudget);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int thinkingBudget)?  $default,) {final _that = this;
+switch (_that) {
+case _GeminiThinkingConfig() when $default != null:
+return $default(_that.thinkingBudget);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _GeminiThinkingConfig implements GeminiThinkingConfig {
+  const _GeminiThinkingConfig({required this.thinkingBudget});
+  factory _GeminiThinkingConfig.fromJson(Map<String, dynamic> json) => _$GeminiThinkingConfigFromJson(json);
+
+@override final  int thinkingBudget;
+
+/// Create a copy of GeminiThinkingConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$GeminiThinkingConfigCopyWith<_GeminiThinkingConfig> get copyWith => __$GeminiThinkingConfigCopyWithImpl<_GeminiThinkingConfig>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$GeminiThinkingConfigToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeminiThinkingConfig&&(identical(other.thinkingBudget, thinkingBudget) || other.thinkingBudget == thinkingBudget));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,thinkingBudget);
+
+@override
+String toString() {
+  return 'GeminiThinkingConfig(thinkingBudget: $thinkingBudget)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$GeminiThinkingConfigCopyWith<$Res> implements $GeminiThinkingConfigCopyWith<$Res> {
+  factory _$GeminiThinkingConfigCopyWith(_GeminiThinkingConfig value, $Res Function(_GeminiThinkingConfig) _then) = __$GeminiThinkingConfigCopyWithImpl;
+@override @useResult
+$Res call({
+ int thinkingBudget
+});
+
+
+
+
+}
+/// @nodoc
+class __$GeminiThinkingConfigCopyWithImpl<$Res>
+    implements _$GeminiThinkingConfigCopyWith<$Res> {
+  __$GeminiThinkingConfigCopyWithImpl(this._self, this._then);
+
+  final _GeminiThinkingConfig _self;
+  final $Res Function(_GeminiThinkingConfig) _then;
+
+/// Create a copy of GeminiThinkingConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? thinkingBudget = null,}) {
+  return _then(_GeminiThinkingConfig(
+thinkingBudget: null == thinkingBudget ? _self.thinkingBudget : thinkingBudget // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

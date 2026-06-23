@@ -34,6 +34,12 @@ class EmptyResponseFailure extends ScanFailure {
   const EmptyResponseFailure(super.message);
 }
 
+/// Gemini blocked the output via its RECITATION filter (the question matched
+/// known published text). Retryable, and mitigated by paraphrasing.
+class RecitationFailure extends ScanFailure {
+  const RecitationFailure(super.message);
+}
+
 /// The response body could not be parsed into the expected shape.
 class ParseFailure extends ScanFailure {
   const ParseFailure(super.message);

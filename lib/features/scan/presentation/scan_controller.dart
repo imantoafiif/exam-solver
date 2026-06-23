@@ -1,0 +1,44 @@
+import "dart:developer" as developer;
+import "dart:typed_data";
+
+import "package:flutter_riverpod/flutter_riverpod.dart";
+
+import "../../../core/error/failures.dart";
+import "../data/scan_providers.dart";
+import "../domain/answer_result.dart";
+import "scan_state.dart";
+
+/// Drives the scan flow state machine: idle → capturing → analyzing → result.
+///
+/// Camera-agnostic by design: the screen owns the [CameraController] and passes
+/// a capture callback, so this controller never touches the camera plugin.
+class ScanController extends Notifier<ScanState> {
+  @override
+  ScanState build() => const ScanState.cameraReady();
+
+  /// Runs one scan cycle. [capture] takes the still frame and returns
+  /// compressed JPEG bytes. Ignored unless currently idle ([ScanCameraReady]).
+  Future<void> scan(Future<Uint8List> Function() capture) async {
+    if (state is! ScanCameraReady) {
+      return;
+    }
+    state = const ScanState.capturing();
+    try {
+      final Uint8List bytes = await capture();
+      state = const ScanState.analyzing();
+      final AnswerResult answer = await ref.read(scanRepositoryProvider).analyzeImage(bytes);
+      state = ScanState.result(answer);
+    } on ScanFailure catch (e) {
+      state = ScanState.error(e.message);
+    } on Object catch (e, stackTrace) {
+      developer.log("Scan failed", name: "ScanController", error: e, stackTrace: stackTrace);
+      state = ScanState.error("Something went wrong. Please try again.");
+    }
+  }
+
+  /// Returns to the idle live-camera state.
+  void reset() => state = const ScanState.cameraReady();
+}
+
+/// The scan flow controller the screen watches and drives.
+final scanControllerProvider = NotifierProvider<ScanController, ScanState>(ScanController.new);

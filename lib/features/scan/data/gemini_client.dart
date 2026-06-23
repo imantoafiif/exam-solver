@@ -19,7 +19,7 @@ class GeminiClient {
   final Dio _dio;
   final String _apiKey;
 
-  static const int _maxAttempts = 2;
+  static const int _maxAttempts = 3;
 
   /// Analyzes [base64Image] with [prompt] as the system instruction and returns
   /// the model's markdown text. Retries once on transient network/5xx errors.
@@ -33,7 +33,11 @@ class GeminiClient {
       contents: <GeminiContent>[
         GeminiContent(
           parts: <GeminiPart>[
-            const GeminiPart(text: "Analyze the exam question in this image."),
+            const GeminiPart(
+              text:
+                  "Analyze the exam question in this image. Paraphrase the question and "
+                  "options in your own words; never reproduce the source text verbatim.",
+            ),
             GeminiPart(
               inlineData: GeminiInlineData(mimeType: GeminiConfig.imageMimeType, data: base64Image),
             ),
@@ -43,6 +47,7 @@ class GeminiClient {
       generationConfig: const GeminiGenerationConfig(
         temperature: GeminiConfig.temperature,
         maxOutputTokens: GeminiConfig.maxOutputTokens,
+        thinkingConfig: GeminiThinkingConfig(thinkingBudget: GeminiConfig.thinkingBudget),
       ),
     );
 
@@ -66,6 +71,18 @@ class GeminiClient {
           "Gemini request failed (attempt $attempt of $_maxAttempts), retrying",
           name: "GeminiClient",
           error: e,
+        );
+      } on RecitationFailure {
+        // RECITATION is probabilistic; a paraphrased retry often succeeds.
+        if (attempt == _maxAttempts) {
+          throw const RecitationFailure(
+            "The model recognized this as a published exam question and declined to "
+            "reproduce it. Please capture and try again.",
+          );
+        }
+        developer.log(
+          "Gemini RECITATION block (attempt $attempt of $_maxAttempts), retrying",
+          name: "GeminiClient",
         );
       }
     }
@@ -94,10 +111,26 @@ class GeminiClient {
       throw const EmptyResponseFailure("Gemini returned no candidates.");
     }
 
-    final List<GeminiPart> parts = candidates.first.content?.parts ?? <GeminiPart>[];
+    final GeminiCandidate candidate = candidates.first;
+    final List<GeminiPart> parts = candidate.content?.parts ?? <GeminiPart>[];
     final String text = parts.map((GeminiPart p) => p.text ?? "").join().trim();
     if (text.isEmpty) {
-      throw const EmptyResponseFailure("Gemini returned no text content.");
+      switch (candidate.finishReason) {
+        case "RECITATION":
+          // The model recognized a published question and declined to reproduce
+          // it. Retryable (paraphrasing usually clears it on a later attempt).
+          throw const RecitationFailure(
+            "The model recognized this as a published question. Retrying with paraphrasing…",
+          );
+        case "MAX_TOKENS":
+          throw const EmptyResponseFailure(
+            "The answer was cut off before any text was produced (token limit). Try again.",
+          );
+        case "SAFETY":
+          throw const EmptyResponseFailure("The response was blocked by a safety filter.");
+        default:
+          throw const EmptyResponseFailure("Gemini returned no text content.");
+      }
     }
     return text;
   }

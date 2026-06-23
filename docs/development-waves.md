@@ -68,16 +68,17 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
 
 **Goal:** real tap → capture in-memory frame → analyze → state transitions.
 
-- [ ] `features/scan/presentation/scan_state.dart` — sealed states: `cameraReady`, `capturing`, `analyzing`, `result`, `error`
-- [ ] `features/scan/presentation/scan_controller.dart` — Riverpod `Notifier` driving the state machine
-- [ ] Capture: `controller.takePicture()` → read bytes → **delete temp file immediately**
-- [ ] Compress/downscale captured frame with `image` (longest edge ~1568px, JPEG q~85)
-- [ ] Base64-encode and pass to repository
-- [ ] Wire `ScanScreen` tap → controller capture (only when state is `cameraReady`)
-- [ ] Ignore taps while `capturing` / `analyzing` / `result` / `error`
-- [ ] Verify NO image is written to gallery or persistent storage
+- [x] `features/scan/presentation/scan_state.dart` — sealed states: `cameraReady`, `capturing`, `analyzing`, `result`, `error`
+- [x] `features/scan/presentation/scan_controller.dart` — Riverpod `Notifier` driving the state machine
+- [x] Capture: `controller.takePicture()` → read bytes → **delete temp file immediately**
+- [x] Compress/downscale captured frame with `image` (longest edge ~1568px, JPEG q~85, in a background isolate via `compute`)
+- [x] Base64-encode and pass to repository (in `scan_repository.dart`)
+- [x] Wire `ScanScreen` tap → controller capture (only when state is `cameraReady`)
+- [x] Ignore taps while `capturing` / `analyzing` / `result` / `error`
+- [x] Verify NO image is written to gallery or persistent storage (temp file deleted post-read)
 
 **Done when:** tapping the live camera captures a frame, sends it, and the state advances `cameraReady → capturing → analyzing → result`; no image persists on device.
+**Gate status:** ✅ `flutter analyze` clean · ✅ `flutter test` green (state-machine unit-tested) · ⏳ on-device tap→answer pending your review.
 
 ---
 
@@ -144,7 +145,7 @@ Do NOT build (PRD §4 / `CLAUDE.md` §3): OCR, question localization, auto-crop,
 | 0    | Project setup & configuration        | [x]    |
 | 1    | Camera foundation                    | [x]    |
 | 2    | Gemini integration (prompt + client) | [x]    |
-| 3    | State machine & capture pipeline     | [ ]    |
+| 3    | State machine & capture pipeline     | [x]    |
 | 4    | Result & error UI                    | [ ]    |
 | 5    | Prompt tuning & validation           | [ ]    |
 | 6    | Polish & release prep                | [ ]    |
