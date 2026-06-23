@@ -31,16 +31,17 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
 
 **Goal:** opening the app shows a full-screen live camera; tapping is detected.
 
-- [ ] `main.dart` — init `flutter_dotenv`, lock portrait orientation, run app into `ScanScreen`
-- [ ] `core/theme/app_theme.dart` — Material 3, dark theme (camera-friendly)
-- [ ] Initialize back camera with `camera` (`ResolutionPreset.high`)
-- [ ] `features/scan/presentation/widgets/camera_view.dart` — full-screen `CameraPreview`
-- [ ] `features/scan/presentation/scan_screen.dart` — full-screen camera, no app bar/chrome
-- [ ] Tap-anywhere `GestureDetector` (for now: log "tap captured")
-- [ ] Handle camera permission denied → simple "enable camera" prompt
-- [ ] Dispose camera controller correctly on app pause/close
+- [x] `main.dart` — init `flutter_dotenv`, lock portrait orientation, run app into `ScanScreen`
+- [x] `core/theme/app_theme.dart` — Material 3, dark theme (camera-friendly)
+- [x] Initialize back camera with `camera` (`ResolutionPreset.high`, `enableAudio: false`)
+- [x] `features/scan/presentation/widgets/camera_view.dart` — full-screen `CameraPreview` (BoxFit.cover)
+- [x] `features/scan/presentation/scan_screen.dart` — full-screen camera, no app bar/chrome
+- [x] Tap-anywhere `GestureDetector` (for now: log "tap captured")
+- [x] Handle camera permission denied → simple "enable camera" prompt + Retry
+- [x] Dispose camera controller correctly on app pause/close (WidgetsBindingObserver)
 
 **Done when:** launching the app goes straight to a live full-screen camera; tapping logs an event; no home screen; rotation locked; no leaks on background/foreground.
+**Gate status:** ✅ `flutter analyze` clean · ✅ `flutter test` green · ✅ on-device run confirmed (full-screen camera, tap logs, no chrome).
 
 ---
 
@@ -48,17 +49,18 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
 
 **Goal:** send an image + prompt to Gemini and get a valid response (proven end-to-end).
 
-- [ ] `core/prompt/prompt_loader.dart` — load `ace_solver_prompt.txt` via `rootBundle`, cache in a provider; hard error if missing
-- [ ] `features/scan/data/dto/gemini_request.dart` — request body model (freezed/json)
-- [ ] `features/scan/data/dto/gemini_response.dart` — response model (freezed/json)
-- [ ] `features/scan/data/gemini_client.dart` — `dio` POST to `generateContent`, `x-goog-api-key` header, timeout + 1 retry
-- [ ] `features/scan/domain/answer_result.dart` — UI-ready parsed result (freezed)
-- [ ] `features/scan/domain/scan_repository_ref.dart` — abstract repository interface
-- [ ] `features/scan/data/scan_repository.dart` — bytes + prompt → `AnswerResult`
-- [ ] Run `dart run build_runner build --delete-conflicting-outputs`
-- [ ] Temporary harness: send one bundled test image, print parsed result
+- [x] `core/prompt/prompt_loader.dart` — load `ace_solver_prompt.txt` via `rootBundle`, cache in a provider; hard error if missing
+- [x] `features/scan/data/dto/gemini_request.dart` — request body model (freezed/json)
+- [x] `features/scan/data/dto/gemini_response.dart` — response model (freezed/json)
+- [x] `features/scan/data/gemini_client.dart` — `dio` POST to `generateContent`, `x-goog-api-key` header, timeout + 1 retry
+- [x] `features/scan/domain/answer_result.dart` — UI-ready parsed result (freezed) + `fromMarkdown` parser
+- [x] `features/scan/domain/scan_repository_ref.dart` — abstract repository interface
+- [x] `features/scan/data/scan_repository.dart` — bytes + prompt → `AnswerResult` (+ `scan_providers.dart` for Riverpod wiring)
+- [x] Run `dart run build_runner build` (codegen OK; `--delete-conflicting-outputs` is removed in build_runner 2.15)
+- [x] Temporary harness: `tool/gemini_smoke.dart` (runs under `dart run`, Flutter-free import graph)
 
 **Done when:** a known test image returns a correctly parsed `AnswerResult` (markdown + best answer + confidence) from `gemini-3.5-flash`.
+**Gate status:** ✅ `flutter analyze` clean · ✅ `flutter test` green (parser unit-tested) · ✅ harness loads under `dart run` · ⏳ live round-trip pending your Gemini key.
 
 ---
 
@@ -140,8 +142,8 @@ Do NOT build (PRD §4 / `CLAUDE.md` §3): OCR, question localization, auto-crop,
 | Wave | Title                                | Status |
 | ---- | ------------------------------------ | ------ |
 | 0    | Project setup & configuration        | [x]    |
-| 1    | Camera foundation                    | [ ]    |
-| 2    | Gemini integration (prompt + client) | [ ]    |
+| 1    | Camera foundation                    | [x]    |
+| 2    | Gemini integration (prompt + client) | [x]    |
 | 3    | State machine & capture pipeline     | [ ]    |
 | 4    | Result & error UI                    | [ ]    |
 | 5    | Prompt tuning & validation           | [ ]    |
