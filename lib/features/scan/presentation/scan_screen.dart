@@ -37,6 +37,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   _CameraStatus _status = _CameraStatus.initializing;
   String? _errorMessage;
 
+  // Back-facing lenses the platform exposes (Camera2 lists main / ultra-wide /
+  // tele separately); the user cycles between them with the lens button.
+  List<CameraDescription> _backCameras = <CameraDescription>[];
+  int _backIndex = 0;
+
   // Pinch-to-zoom state.
   double _minZoom = 1.0;
   double _maxZoom = 1.0;
@@ -102,10 +107,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
           }
           return;
         }
-        final CameraDescription back = cameras.firstWhere(
-          (CameraDescription c) => c.lensDirection == CameraLensDirection.back,
-          orElse: () => cameras.first,
-        );
+        // Build the selectable back-lens list (fall back to all cameras if none
+        // report as back-facing). Keep the user's chosen index across re-inits.
+        final List<CameraDescription> backs = cameras
+            .where((CameraDescription c) => c.lensDirection == CameraLensDirection.back)
+            .toList();
+        _backCameras = backs.isEmpty ? cameras : backs;
+        if (_backIndex >= _backCameras.length) {
+          _backIndex = 0;
+        }
+        for (int i = 0; i < _backCameras.length; i++) {
+          developer.log("backCam[$i]: '${_backCameras[i].name}'", name: "ScanScreen.cameras");
+        }
+        final CameraDescription back = _backCameras[_backIndex];
         controller = CameraController(back, ResolutionPreset.high, enableAudio: false);
         await controller.initialize();
         _minZoom = await controller.getMinZoomLevel();
@@ -163,6 +177,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         _errorMessage = lastError ?? "Couldn't start the camera. Tap retry.";
       });
     }
+  }
+
+  /// Cycles to the next back lens (e.g. main → ultra-wide → tele) and re-inits.
+  Future<void> _switchLens() async {
+    if (_backCameras.length < 2) {
+      return;
+    }
+    _backIndex = (_backIndex + 1) % _backCameras.length;
+    final CameraController? old = _controller;
+    _controller = null;
+    await old?.dispose();
+    await _initCamera();
   }
 
   void _onTap() {
@@ -265,6 +291,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
             children: <Widget>[
               _baseLayer(scanState),
               if (scanState is ScanCameraReady && zoomSupported) _ZoomIndicator(zoom: _currentZoom),
+              if (scanState is ScanCameraReady && _backCameras.length > 1)
+                _LensButton(index: _backIndex, count: _backCameras.length, onSwitch: _switchLens),
               ScanStatusOverlay(
                 state: scanState,
                 onReset: notifier.reset,
@@ -323,6 +351,50 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       return const ColoredBox(color: Colors.black);
     }
     return CameraView(controller: controller);
+  }
+}
+
+/// Bottom-right button to cycle back lenses (main / ultra-wide / tele). Shows
+/// the current lens index so the user can find the wide one.
+class _LensButton extends StatelessWidget {
+  const _LensButton({required this.index, required this.count, required this.onSwitch});
+
+  final int index;
+  final int count;
+  final VoidCallback onSwitch;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, bottom: 40),
+          child: Material(
+            color: Colors.black54,
+            shape: const StadiumBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onSwitch,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    const Icon(Icons.cameraswitch_outlined, color: Colors.white, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Lens ${index + 1}/$count",
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
