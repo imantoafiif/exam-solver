@@ -71,6 +71,7 @@ Rationale recorded in PRD §6, §7: OCR and image hashing were evaluated and **p
 | HTTP                  | `dio`                                                                                                                         |
 | Models / immutability | `freezed` (+ `json_serializable`)                                                                                             |
 | State management      | `riverpod` (`flutter_riverpod` / `hooks_riverpod`)                                                                            |
+| Settings persistence  | `shared_preferences` — toggles (quick-answer, save-images, colored-overlay) in `core/settings/`                               |
 | AI provider           | **Gemini Developer API (REST), called directly via `dio`.** Default model `gemini-3.5-flash`                                  |
 | Config / secrets      | API key in `.env` (gitignored), loaded with `flutter_dotenv`                                                                  |
 | Backend               | **None initially.** Add (Node/Nest/Express) only when auth, billing, caching, or analytics genuinely require it               |

@@ -11,6 +11,7 @@ Widget _host(
   VoidCallback? onReset,
   VoidCallback? onRetry,
   bool quickMode = false,
+  bool coloredOverlay = false,
 }) {
   return MaterialApp(
     home: Scaffold(
@@ -19,6 +20,7 @@ Widget _host(
         onReset: onReset ?? () {},
         onRetry: onRetry ?? () {},
         quickMode: quickMode,
+        coloredOverlay: coloredOverlay,
       ),
     ),
   );

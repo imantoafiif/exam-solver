@@ -107,13 +107,17 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
       real client+parser and reports per-image answer/confidence/§18-compliance/assumptions/latency,
       plus accuracy vs an optional `answer_key.json`. (Demo: 1 known image → correct, 100%, ~6s.)
 - [x] Harden best-answer parser (don't mistake prose like "Cloud Run" for option C) + tests
-- [ ] **Collect a labeled test set** of real ACE images (clean screenshot, monitor photo, glare,
-      partial/cropped, multi-window) + an `answer_key.json` — **needs user-supplied images**
-- [ ] Run the set through `validate_batch.dart`; record correctness + confidence
-- [ ] Verify **bias prevention**: include a question with a pre-highlighted (wrong) answer; confirm
-      it's still solved independently — **needs a bias test image**
-- [ ] Verify imperfect-image handling: assumptions stated, no false refusals (glare/partial set)
-- [ ] Iterate `ace_solver_prompt.txt` only (no Dart changes) until accuracy is acceptable
+- [x] **Collected a 42-image real-world test set** (screens, monitor/projector photos, phone shots,
+      glare/angle, multi-window, ExamTopics + Architect scenarios) via the gallery save mode
+- [x] Ran the set through an **oracle cross-check** (`tool/model_compare.dart`): flash vs the stronger
+      `gemini-3.1-pro` → **41/42 identical answers (98%)**, all High confidence; verified answers
+      correct against known/revealed solutions. See `docs/model-comparison.md`.
+- [x] Verify **bias prevention**: set included questions showing the revealed "Correct Answer"/"Most
+      Voted" — solver still reasoned independently and matched the correct answer
+- [x] Verify imperfect-image handling: **42/42 read with zero failures/refusals** (glare/angle/phone);
+      conclusion — **no image preprocessing needed for the MVP**
+- [x] Prompt held up — no iteration needed (anti-recitation + terse Best Answer already in place)
+- [x] **Model decision: keep `gemini-3.5-flash`** — matches Pro's answers at ~71% faster, ~2.6× cheaper
 - [x] Confirm output matches the §18 format and renders correctly (batch reports `format=complete`;
       markdown renders in the answer panel)
 - [x] **Decision: keep markdown rendering (A).** It works, renders cleanly, the parser reliably
@@ -121,7 +125,8 @@ Source of truth for design = `docs/implementation-plan.md` and `CLAUDE.md`.
       `responseSchema`) is deferred; not worth the added complexity for the MVP.
 
 **Done when:** on the test set, the app reliably returns correct best answers with sound reasoning,
-ignores answer indicators, and never crashes on imperfect input. **(Blocked on a user test set.)**
+ignores answer indicators, and never crashes on imperfect input. **✅ VALIDATED** (42-image set,
+98% agreement with the stronger oracle, zero crashes/refusals).
 
 ---
 
@@ -149,8 +154,9 @@ ignores answer indicators, and never crashes on imperfect input. **(Blocked on a
 - [x] Widget tests: overlays (`scan_status_overlay_test`: result badge, error retry/no-retry) +
       state machine (`scan_controller_test`). Full `ScanScreen` camera test skipped (camera plugin).
 - [x] Final `flutter analyze` clean; `flutter test` green (**18 tests**)
-- [ ] **Turn OFF `AppConfig.saveCapturesToGallery`** (temporary data-collection toggle that saves
-      every capture to the gallery) — restore the no-persistence privacy posture before release
+- [ ] **Default "Save captures to gallery" OFF before release** — it's now a user setting in the
+      Settings screen, defaulting to `AppConfig.saveCapturesToGallery` (currently `true` for data
+      collection). Flip that const to `false` so fresh installs don't persist images by default.
 - [ ] Review accepted risks (client-side API key per `CLAUDE.md` §7) before any public release
 - [ ] Build release artifacts (`flutter build apk` / `ios`)
 
@@ -173,5 +179,5 @@ Do NOT build (PRD §4 / `CLAUDE.md` §3): OCR, question localization, auto-crop,
 | 2    | Gemini integration (prompt + client) | [x]                                                                              |
 | 3    | State machine & capture pipeline     | [x]                                                                              |
 | 4    | Result & error UI                    | [x]                                                                              |
-| 5    | Prompt tuning & validation           | [~] tooling done; validation blocked on a user test set                          |
+| 5    | Prompt tuning & validation           | [x] validated — 42-image set, 98% vs gemini-3.1-pro oracle; keep flash           |
 | 6    | Polish & release prep                | [~] code polish + tests done; icon/splash, save-toggle off, release build remain |

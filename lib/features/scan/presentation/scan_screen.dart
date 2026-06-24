@@ -9,10 +9,10 @@ import "package:gal/gal.dart";
 
 import "../../../core/config/app_config.dart";
 import "../../../core/error/failures.dart";
+import "../../../core/settings/settings.dart";
 import "../data/image_compressor.dart";
 import "scan_controller.dart";
 import "scan_state.dart";
-import "widgets/camera_top_bar.dart";
 import "widgets/camera_view.dart";
 import "widgets/scan_status_overlay.dart";
 
@@ -59,73 +59,108 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final CameraController? controller = _controller;
-    if (controller == null || !controller.value.isInitialized) {
-      return;
-    }
-    // Release the camera when backgrounded; re-acquire on resume.
     if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      controller.dispose();
-      _controller = null;
+      // Release the camera when backgrounded. Crucially, drop back to the
+      // `initializing` state so the UI stops rendering the (now-null) controller
+      // — otherwise a rebuild hits `_controller!` and crashes.
+      final CameraController? controller = _controller;
+      if (controller != null) {
+        _controller = null;
+        controller.dispose();
+        if (mounted) {
+          setState(() => _status = _CameraStatus.initializing);
+        }
+      }
     } else if (state == AppLifecycleState.resumed) {
-      _initCamera();
+      // Re-acquire only if we released it (don't double-init).
+      if (_controller == null) {
+        _initCamera();
+      }
     }
   }
 
   Future<void> _initCamera() async {
-    setState(() {
-      _status = _CameraStatus.initializing;
-      _errorMessage = null;
-    });
-    try {
-      final List<CameraDescription> cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        if (mounted) {
-          setState(() => _status = _CameraStatus.noCamera);
-        }
-        return;
-      }
-      final CameraDescription back = cameras.firstWhere(
-        (CameraDescription c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras.first,
-      );
-      final CameraController controller = CameraController(
-        back,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
-      await controller.initialize();
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
-      _minZoom = await controller.getMinZoomLevel();
-      _maxZoom = await controller.getMaxZoomLevel();
-      _currentZoom = _minZoom;
-      _baseZoom = _minZoom;
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
+    if (mounted) {
       setState(() {
-        _controller = controller;
-        _status = _CameraStatus.ready;
+        _status = _CameraStatus.initializing;
+        _errorMessage = null;
       });
-    } on CameraException catch (e, stackTrace) {
-      developer.log(
-        "Camera init failed: ${e.code} ${e.description}",
-        name: "ScanScreen",
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (!mounted) {
-        return;
+    }
+
+    // CameraX's initializeCamera intermittently throws a (plain) null-check
+    // error when preview resolution info isn't ready yet — especially on
+    // resume. It's a timing race, so retry a few times before giving up.
+    const int maxAttempts = 3;
+    String? lastError;
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      CameraController? controller;
+      try {
+        final List<CameraDescription> cameras = await availableCameras();
+        if (cameras.isEmpty) {
+          if (mounted) {
+            setState(() => _status = _CameraStatus.noCamera);
+          }
+          return;
+        }
+        final CameraDescription back = cameras.firstWhere(
+          (CameraDescription c) => c.lensDirection == CameraLensDirection.back,
+          orElse: () => cameras.first,
+        );
+        controller = CameraController(back, ResolutionPreset.high, enableAudio: false);
+        await controller.initialize();
+        _minZoom = await controller.getMinZoomLevel();
+        _maxZoom = await controller.getMaxZoomLevel();
+        _currentZoom = _minZoom;
+        _baseZoom = _minZoom;
+        developer.log(
+          "camera '${back.name}' ready; zoom min=$_minZoom max=$_maxZoom",
+          name: "ScanScreen.zoom",
+        );
+        if (!mounted) {
+          await controller.dispose();
+          return;
+        }
+        setState(() {
+          _controller = controller;
+          _status = _CameraStatus.ready;
+        });
+        return; // success
+      } on CameraException catch (e, stackTrace) {
+        await controller?.dispose();
+        developer.log(
+          "Camera init failed: ${e.code}",
+          name: "ScanScreen",
+          error: e,
+          stackTrace: stackTrace,
+        );
+        final String code = e.code.toLowerCase();
+        if (code.contains("denied") || code.contains("permission")) {
+          if (mounted) {
+            setState(() => _status = _CameraStatus.denied);
+          }
+          return; // permission won't fix itself by retrying
+        }
+        lastError = e.description;
+      } on Object catch (e, stackTrace) {
+        // Includes the CameraX plugin's internal null-check crash.
+        await controller?.dispose();
+        developer.log(
+          "Camera init crashed (attempt $attempt)",
+          name: "ScanScreen",
+          error: e,
+          stackTrace: stackTrace,
+        );
+        lastError = "Couldn't start the camera.";
       }
-      final String code = e.code.toLowerCase();
-      final bool denied = code.contains("denied") || code.contains("permission");
+      if (attempt < maxAttempts) {
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      }
+    }
+
+    if (mounted) {
       setState(() {
-        _status = denied ? _CameraStatus.denied : _CameraStatus.error;
-        _errorMessage = e.description;
+        _status = _CameraStatus.error;
+        _errorMessage = lastError ?? "Couldn't start the camera. Tap retry.";
       });
     }
   }
@@ -182,8 +217,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       // Best-effort cleanup; a leftover temp file is non-fatal.
     }
     final Uint8List compressed = await compressJpeg(raw);
-    // Optional, gated data-collection: persist the frame we send to Gemini.
-    if (AppConfig.saveCapturesToGallery) {
+    // Optional, user-toggled data-collection: persist the frame we send to Gemini.
+    if (ref.read(settingsProvider).saveImages) {
       await _saveCapture(compressed);
     }
     return compressed;
@@ -223,25 +258,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         {
           final ScanState scanState = ref.watch(scanControllerProvider);
           final ScanController notifier = ref.read(scanControllerProvider.notifier);
-          final bool quickMode = ref.watch(quickModeProvider);
+          final AppSettings settings = ref.watch(settingsProvider);
           final bool zoomSupported = _maxZoom > _minZoom;
           return Stack(
             fit: StackFit.expand,
             children: <Widget>[
               _baseLayer(scanState),
-              if (scanState is ScanCameraReady)
-                CameraTopBar(
-                  zoom: _currentZoom,
-                  showZoom: zoomSupported,
-                  quickMode: quickMode,
-                  onQuickModeChanged: (bool value) =>
-                      ref.read(quickModeProvider.notifier).set(value),
-                ),
+              if (scanState is ScanCameraReady && zoomSupported) _ZoomIndicator(zoom: _currentZoom),
               ScanStatusOverlay(
                 state: scanState,
                 onReset: notifier.reset,
                 onRetry: notifier.retry,
-                quickMode: quickMode,
+                quickMode: settings.quickAnswer,
+                coloredOverlay: settings.coloredOverlay,
               ),
             ],
           );
@@ -287,7 +316,45 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       // matching the live preview — a 1:1 representation of what was captured.
       return Image.memory(frame, fit: BoxFit.contain, gaplessPlayback: true);
     }
-    return CameraView(controller: _controller!);
+    // Defensive: the controller can be momentarily null/uninitialized around
+    // app background/resume. Never `_controller!` here — show black instead.
+    final CameraController? controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return const ColoredBox(color: Colors.black);
+    }
+    return CameraView(controller: controller);
+  }
+}
+
+/// Small pill (top-center) showing the current zoom level; hints pinch-to-zoom.
+class _ZoomIndicator extends StatelessWidget {
+  const _ZoomIndicator({required this.zoom});
+
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Text(
+                "${zoom.toStringAsFixed(1)}×",
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

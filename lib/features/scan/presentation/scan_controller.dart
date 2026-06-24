@@ -82,15 +82,3 @@ class ScanController extends Notifier<ScanState> {
 
 /// The scan flow controller the screen watches and drives.
 final scanControllerProvider = NotifierProvider<ScanController, ScanState>(ScanController.new);
-
-/// Whether "quick result" mode is on: show the answer as a big, fading token in
-/// the screen center instead of the detailed bottom pane. In-memory (resets on
-/// app restart).
-class QuickModeNotifier extends Notifier<bool> {
-  @override
-  bool build() => true;
-
-  void set(bool value) => state = value;
-}
-
-final quickModeProvider = NotifierProvider<QuickModeNotifier, bool>(QuickModeNotifier.new);

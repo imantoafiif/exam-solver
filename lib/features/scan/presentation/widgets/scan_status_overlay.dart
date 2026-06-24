@@ -14,6 +14,7 @@ class ScanStatusOverlay extends StatelessWidget {
     required this.onReset,
     required this.onRetry,
     required this.quickMode,
+    required this.coloredOverlay,
     super.key,
   });
 
@@ -25,6 +26,10 @@ class ScanStatusOverlay extends StatelessWidget {
   /// of the detailed bottom pane.
   final bool quickMode;
 
+  /// Experimental: when true (and in quick mode), fill the screen with a color
+  /// mapped to the answer behind the big token.
+  final bool coloredOverlay;
+
   @override
   Widget build(BuildContext context) {
     return switch (state) {
@@ -33,7 +38,13 @@ class ScanStatusOverlay extends StatelessWidget {
       ScanAnalyzing() => const LoadingOverlay(label: "Analyzing…"),
       ScanResult(:final answer) =>
         quickMode
-            ? QuickAnswerOverlay(answer: answer.quickAnswer, onDone: onReset)
+            ? QuickAnswerOverlay(
+                answer: answer.quickAnswer,
+                onDone: onReset,
+                background: coloredOverlay
+                    ? QuickAnswerOverlay.colorForAnswer(answer.quickAnswer)
+                    : null,
+              )
             : AnswerPanel(answer: answer, onClose: onReset),
       ScanError(:final message, :final frame) => ErrorOverlay(
         message: message,
