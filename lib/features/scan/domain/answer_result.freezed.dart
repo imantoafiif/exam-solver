@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AnswerResult {
 
- String get rawMarkdown; String get bestAnswer; String get confidence; String get reconstructedQuestion;
+ String get rawMarkdown; String get bestAnswer; String get confidence; String get reconstructedQuestion; String get quickAnswer;
 /// Create a copy of AnswerResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AnswerResultCopyWith<AnswerResult> get copyWith => _$AnswerResultCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnswerResult&&(identical(other.rawMarkdown, rawMarkdown) || other.rawMarkdown == rawMarkdown)&&(identical(other.bestAnswer, bestAnswer) || other.bestAnswer == bestAnswer)&&(identical(other.confidence, confidence) || other.confidence == confidence)&&(identical(other.reconstructedQuestion, reconstructedQuestion) || other.reconstructedQuestion == reconstructedQuestion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnswerResult&&(identical(other.rawMarkdown, rawMarkdown) || other.rawMarkdown == rawMarkdown)&&(identical(other.bestAnswer, bestAnswer) || other.bestAnswer == bestAnswer)&&(identical(other.confidence, confidence) || other.confidence == confidence)&&(identical(other.reconstructedQuestion, reconstructedQuestion) || other.reconstructedQuestion == reconstructedQuestion)&&(identical(other.quickAnswer, quickAnswer) || other.quickAnswer == quickAnswer));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,rawMarkdown,bestAnswer,confidence,reconstructedQuestion);
+int get hashCode => Object.hash(runtimeType,rawMarkdown,bestAnswer,confidence,reconstructedQuestion,quickAnswer);
 
 @override
 String toString() {
-  return 'AnswerResult(rawMarkdown: $rawMarkdown, bestAnswer: $bestAnswer, confidence: $confidence, reconstructedQuestion: $reconstructedQuestion)';
+  return 'AnswerResult(rawMarkdown: $rawMarkdown, bestAnswer: $bestAnswer, confidence: $confidence, reconstructedQuestion: $reconstructedQuestion, quickAnswer: $quickAnswer)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AnswerResultCopyWith<$Res>  {
   factory $AnswerResultCopyWith(AnswerResult value, $Res Function(AnswerResult) _then) = _$AnswerResultCopyWithImpl;
 @useResult
 $Res call({
- String rawMarkdown, String bestAnswer, String confidence, String reconstructedQuestion
+ String rawMarkdown, String bestAnswer, String confidence, String reconstructedQuestion, String quickAnswer
 });
 
 
@@ -62,12 +62,13 @@ class _$AnswerResultCopyWithImpl<$Res>
 
 /// Create a copy of AnswerResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rawMarkdown = null,Object? bestAnswer = null,Object? confidence = null,Object? reconstructedQuestion = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rawMarkdown = null,Object? bestAnswer = null,Object? confidence = null,Object? reconstructedQuestion = null,Object? quickAnswer = null,}) {
   return _then(_self.copyWith(
 rawMarkdown: null == rawMarkdown ? _self.rawMarkdown : rawMarkdown // ignore: cast_nullable_to_non_nullable
 as String,bestAnswer: null == bestAnswer ? _self.bestAnswer : bestAnswer // ignore: cast_nullable_to_non_nullable
 as String,confidence: null == confidence ? _self.confidence : confidence // ignore: cast_nullable_to_non_nullable
 as String,reconstructedQuestion: null == reconstructedQuestion ? _self.reconstructedQuestion : reconstructedQuestion // ignore: cast_nullable_to_non_nullable
+as String,quickAnswer: null == quickAnswer ? _self.quickAnswer : quickAnswer // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String rawMarkdown,  String bestAnswer,  String confidence,  String reconstructedQuestion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String rawMarkdown,  String bestAnswer,  String confidence,  String reconstructedQuestion,  String quickAnswer)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AnswerResult() when $default != null:
-return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.reconstructedQuestion);case _:
+return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.reconstructedQuestion,_that.quickAnswer);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.recons
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String rawMarkdown,  String bestAnswer,  String confidence,  String reconstructedQuestion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String rawMarkdown,  String bestAnswer,  String confidence,  String reconstructedQuestion,  String quickAnswer)  $default,) {final _that = this;
 switch (_that) {
 case _AnswerResult():
-return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.reconstructedQuestion);case _:
+return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.reconstructedQuestion,_that.quickAnswer);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +195,10 @@ return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.recons
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String rawMarkdown,  String bestAnswer,  String confidence,  String reconstructedQuestion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String rawMarkdown,  String bestAnswer,  String confidence,  String reconstructedQuestion,  String quickAnswer)?  $default,) {final _that = this;
 switch (_that) {
 case _AnswerResult() when $default != null:
-return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.reconstructedQuestion);case _:
+return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.reconstructedQuestion,_that.quickAnswer);case _:
   return null;
 
 }
@@ -209,13 +210,14 @@ return $default(_that.rawMarkdown,_that.bestAnswer,_that.confidence,_that.recons
 
 
 class _AnswerResult extends AnswerResult {
-  const _AnswerResult({required this.rawMarkdown, required this.bestAnswer, required this.confidence, required this.reconstructedQuestion}): super._();
+  const _AnswerResult({required this.rawMarkdown, required this.bestAnswer, required this.confidence, required this.reconstructedQuestion, required this.quickAnswer}): super._();
   
 
 @override final  String rawMarkdown;
 @override final  String bestAnswer;
 @override final  String confidence;
 @override final  String reconstructedQuestion;
+@override final  String quickAnswer;
 
 /// Create a copy of AnswerResult
 /// with the given fields replaced by the non-null parameter values.
@@ -227,16 +229,16 @@ _$AnswerResultCopyWith<_AnswerResult> get copyWith => __$AnswerResultCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnswerResult&&(identical(other.rawMarkdown, rawMarkdown) || other.rawMarkdown == rawMarkdown)&&(identical(other.bestAnswer, bestAnswer) || other.bestAnswer == bestAnswer)&&(identical(other.confidence, confidence) || other.confidence == confidence)&&(identical(other.reconstructedQuestion, reconstructedQuestion) || other.reconstructedQuestion == reconstructedQuestion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnswerResult&&(identical(other.rawMarkdown, rawMarkdown) || other.rawMarkdown == rawMarkdown)&&(identical(other.bestAnswer, bestAnswer) || other.bestAnswer == bestAnswer)&&(identical(other.confidence, confidence) || other.confidence == confidence)&&(identical(other.reconstructedQuestion, reconstructedQuestion) || other.reconstructedQuestion == reconstructedQuestion)&&(identical(other.quickAnswer, quickAnswer) || other.quickAnswer == quickAnswer));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,rawMarkdown,bestAnswer,confidence,reconstructedQuestion);
+int get hashCode => Object.hash(runtimeType,rawMarkdown,bestAnswer,confidence,reconstructedQuestion,quickAnswer);
 
 @override
 String toString() {
-  return 'AnswerResult(rawMarkdown: $rawMarkdown, bestAnswer: $bestAnswer, confidence: $confidence, reconstructedQuestion: $reconstructedQuestion)';
+  return 'AnswerResult(rawMarkdown: $rawMarkdown, bestAnswer: $bestAnswer, confidence: $confidence, reconstructedQuestion: $reconstructedQuestion, quickAnswer: $quickAnswer)';
 }
 
 
@@ -247,7 +249,7 @@ abstract mixin class _$AnswerResultCopyWith<$Res> implements $AnswerResultCopyWi
   factory _$AnswerResultCopyWith(_AnswerResult value, $Res Function(_AnswerResult) _then) = __$AnswerResultCopyWithImpl;
 @override @useResult
 $Res call({
- String rawMarkdown, String bestAnswer, String confidence, String reconstructedQuestion
+ String rawMarkdown, String bestAnswer, String confidence, String reconstructedQuestion, String quickAnswer
 });
 
 
@@ -264,12 +266,13 @@ class __$AnswerResultCopyWithImpl<$Res>
 
 /// Create a copy of AnswerResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rawMarkdown = null,Object? bestAnswer = null,Object? confidence = null,Object? reconstructedQuestion = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rawMarkdown = null,Object? bestAnswer = null,Object? confidence = null,Object? reconstructedQuestion = null,Object? quickAnswer = null,}) {
   return _then(_AnswerResult(
 rawMarkdown: null == rawMarkdown ? _self.rawMarkdown : rawMarkdown // ignore: cast_nullable_to_non_nullable
 as String,bestAnswer: null == bestAnswer ? _self.bestAnswer : bestAnswer // ignore: cast_nullable_to_non_nullable
 as String,confidence: null == confidence ? _self.confidence : confidence // ignore: cast_nullable_to_non_nullable
 as String,reconstructedQuestion: null == reconstructedQuestion ? _self.reconstructedQuestion : reconstructedQuestion // ignore: cast_nullable_to_non_nullable
+as String,quickAnswer: null == quickAnswer ? _self.quickAnswer : quickAnswer // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

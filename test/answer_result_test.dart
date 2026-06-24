@@ -63,6 +63,30 @@ void main() {
       expect(AnswerResult.fromMarkdown(md).bestAnswer, "C");
     });
 
+    group("quickAnswer", () {
+      test("single letter", () {
+        expect(AnswerResult.fromMarkdown("## Best Answer\n\nD\n").quickAnswer, "D");
+      });
+
+      test("letter buried in prose", () {
+        const String md = "## Best Answer\n\nThe correct answer is **B) Cloud Run**.";
+        expect(AnswerResult.fromMarkdown(md).quickAnswer, "B");
+      });
+
+      test("true / false", () {
+        expect(AnswerResult.fromMarkdown("## Best Answer\n\nTrue\n").quickAnswer, "TRUE");
+        expect(AnswerResult.fromMarkdown("## Best Answer\n\nFalse\n").quickAnswer, "FALSE");
+      });
+
+      test("multi-select letters", () {
+        expect(AnswerResult.fromMarkdown("## Best Answer\n\nA, C\n").quickAnswer, "A, C");
+      });
+
+      test("numeric answers", () {
+        expect(AnswerResult.fromMarkdown("## Best Answer\n\n1, 3\n").quickAnswer, "1, 3");
+      });
+    });
+
     test("degrades gracefully when sections are missing", () {
       // Act
       final AnswerResult result = AnswerResult.fromMarkdown("no headers here");

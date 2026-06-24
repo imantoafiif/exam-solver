@@ -12,6 +12,7 @@ import "../../../core/error/failures.dart";
 import "../data/image_compressor.dart";
 import "scan_controller.dart";
 import "scan_state.dart";
+import "widgets/camera_top_bar.dart";
 import "widgets/camera_view.dart";
 import "widgets/scan_status_overlay.dart";
 
@@ -222,13 +223,26 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         {
           final ScanState scanState = ref.watch(scanControllerProvider);
           final ScanController notifier = ref.read(scanControllerProvider.notifier);
+          final bool quickMode = ref.watch(quickModeProvider);
           final bool zoomSupported = _maxZoom > _minZoom;
           return Stack(
             fit: StackFit.expand,
             children: <Widget>[
               _baseLayer(scanState),
-              if (scanState is ScanCameraReady && zoomSupported) _ZoomIndicator(zoom: _currentZoom),
-              ScanStatusOverlay(state: scanState, onReset: notifier.reset, onRetry: notifier.retry),
+              if (scanState is ScanCameraReady)
+                CameraTopBar(
+                  zoom: _currentZoom,
+                  showZoom: zoomSupported,
+                  quickMode: quickMode,
+                  onQuickModeChanged: (bool value) =>
+                      ref.read(quickModeProvider.notifier).set(value),
+                ),
+              ScanStatusOverlay(
+                state: scanState,
+                onReset: notifier.reset,
+                onRetry: notifier.retry,
+                quickMode: quickMode,
+              ),
             ],
           );
         }
@@ -274,38 +288,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       return Image.memory(frame, fit: BoxFit.contain, gaplessPlayback: true);
     }
     return CameraView(controller: _controller!);
-  }
-}
-
-/// Small pill showing the current zoom level. Hint that pinch-to-zoom works.
-class _ZoomIndicator extends StatelessWidget {
-  const _ZoomIndicator({required this.zoom});
-
-  final double zoom;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              child: Text(
-                "${zoom.toStringAsFixed(1)}×",
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 

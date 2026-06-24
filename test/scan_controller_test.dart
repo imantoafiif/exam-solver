@@ -41,6 +41,7 @@ void main() {
     bestAnswer: "B",
     confidence: "High",
     reconstructedQuestion: "Q",
+    quickAnswer: "B",
   );
 
   group("ScanController", () {

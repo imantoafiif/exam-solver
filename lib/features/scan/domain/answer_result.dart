@@ -16,6 +16,7 @@ abstract class AnswerResult with _$AnswerResult {
     required String bestAnswer,
     required String confidence,
     required String reconstructedQuestion,
+    required String quickAnswer,
   }) = _AnswerResult;
 
   /// Parses the model's markdown output into an [AnswerResult]. Extraction is
@@ -26,6 +27,7 @@ abstract class AnswerResult with _$AnswerResult {
       bestAnswer: _bestAnswer(markdown),
       confidence: _confidence(markdown),
       reconstructedQuestion: _section(markdown, "Reconstructed Question"),
+      quickAnswer: _quickAnswer(markdown),
     );
   }
 }
@@ -58,6 +60,41 @@ String _bestAnswer(String md) {
     }
   }
   return "";
+}
+
+/// A short, glanceable answer token for the quick-result display — e.g. "D",
+/// "TRUE", "FALSE", or "1, 3" for multi-select. Derived from the Best Answer
+/// section so the detailed pane and quick mode stay in sync.
+String _quickAnswer(String md) {
+  String section = _section(md, "Best Answer").replaceAll(RegExp(r"[*_`#>]"), "").trim();
+  if (section.isEmpty) {
+    return _bestAnswer(md);
+  }
+  final String upper = section.toUpperCase();
+
+  // True / False questions.
+  final RegExpMatch? trueFalse = RegExp(r"\b(TRUE|FALSE)\b").firstMatch(upper);
+  if (trueFalse != null) {
+    return trueFalse.group(1)!;
+  }
+
+  // Option letters (A–J) and/or standalone digits, in order, de-duplicated.
+  final List<String> tokens = <String>[];
+  for (final RegExpMatch m in RegExp(
+    r"(?<![A-Za-z0-9])([A-J]|[1-9])(?![A-Za-z0-9])",
+  ).allMatches(upper)) {
+    final String t = m.group(1)!;
+    if (!tokens.contains(t)) {
+      tokens.add(t);
+    }
+  }
+  if (tokens.isNotEmpty) {
+    return tokens.join(", ");
+  }
+
+  // Fallback: the first line, capped so the huge display stays legible.
+  final String firstLine = upper.split("\n").first.trim();
+  return firstLine.length <= 24 ? firstLine : firstLine.substring(0, 24);
 }
 
 /// Normalizes the Confidence section to High / Medium / Low, else "Unknown".
