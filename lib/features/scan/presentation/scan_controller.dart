@@ -88,7 +88,7 @@ final scanControllerProvider = NotifierProvider<ScanController, ScanState>(ScanC
 /// app restart).
 class QuickModeNotifier extends Notifier<bool> {
   @override
-  bool build() => false;
+  bool build() => true;
 
   void set(bool value) => state = value;
 }
