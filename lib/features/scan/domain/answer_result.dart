@@ -48,10 +48,10 @@ String _section(String md, String header) {
 String _bestAnswer(String md) {
   final String section = _section(md, "Best Answer");
   final List<RegExp> patterns = <RegExp>[
-    RegExp(r"\*\*\s*([A-E])\b"), // **C** or **C)
-    RegExp(r"\b([A-E])[).:]"), // C) or C. or C:
-    RegExp(r"answer\s*(?:is|:)?\s*\*{0,2}([A-E])\b", caseSensitive: false),
-    RegExp(r"(?<![A-Za-z])([A-E])(?![A-Za-z])"), // a standalone letter
+    RegExp(r"\*\*\s*([A-F])\b"), // **C** or **C)
+    RegExp(r"\b([A-F])[).:]"), // C) or C. or C:
+    RegExp(r"answer\s*(?:is|:)?\s*\*{0,2}([A-F])\b", caseSensitive: false),
+    RegExp(r"(?<![A-Za-z])([A-F])(?![A-Za-z])"), // a standalone letter
   ];
   for (final RegExp re in patterns) {
     final RegExpMatch? match = re.firstMatch(section);

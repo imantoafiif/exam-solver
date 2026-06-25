@@ -41,9 +41,7 @@ class ScanStatusOverlay extends StatelessWidget {
             ? QuickAnswerOverlay(
                 answer: answer.quickAnswer,
                 onDone: onReset,
-                background: coloredOverlay
-                    ? QuickAnswerOverlay.colorForAnswer(answer.quickAnswer)
-                    : null,
+                coloredOverlay: coloredOverlay,
               )
             : AnswerPanel(answer: answer, onClose: onReset),
       ScanError(:final message, :final frame) => ErrorOverlay(

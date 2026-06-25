@@ -4,11 +4,13 @@ import "package:flutter_test/flutter_test.dart";
 
 void main() {
   group("QuickAnswerOverlay.colorForAnswer", () {
-    test("maps A→red, B→yellow, C→green, D→blue (rainbow order)", () {
+    test("maps A→red, B→yellow, C→green, D→blue, E→black, F→white", () {
       expect(QuickAnswerOverlay.colorForAnswer("A"), Colors.red.shade600);
       expect(QuickAnswerOverlay.colorForAnswer("B"), Colors.amber.shade600);
       expect(QuickAnswerOverlay.colorForAnswer("C"), Colors.green.shade600);
       expect(QuickAnswerOverlay.colorForAnswer("D"), Colors.blue.shade600);
+      expect(QuickAnswerOverlay.colorForAnswer("E"), Colors.black);
+      expect(QuickAnswerOverlay.colorForAnswer("F"), Colors.white);
     });
 
     test("handles true/false and numbers", () {

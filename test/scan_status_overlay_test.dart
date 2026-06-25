@@ -77,31 +77,42 @@ void main() {
     expect(find.text("B"), findsOneWidget);
     expect(find.textContaining("Best answer"), findsNothing);
 
-    // Tap dismisses early; the fade completes and triggers onReset.
+    // Tap dismisses immediately (no transition) and triggers onReset.
     await tester.tap(find.text("B"));
-    await tester.pumpAndSettle();
+    await tester.pump();
     expect(done, isTrue);
   });
 
-  testWidgets("quick mode renders multi-select answers side by side", (WidgetTester tester) async {
+  testWidgets("quick mode shows multi-select answers sequentially, 2.5s each", (
+    WidgetTester tester,
+  ) async {
     const AnswerResult multi = AnswerResult(
-      rawMarkdown: "## Best Answer\n\nA, C, D",
+      rawMarkdown: "## Best Answer\n\nA, C, F",
       bestAnswer: "A",
       confidence: "High",
       reconstructedQuestion: "Q",
-      quickAnswer: "A, C, D",
+      quickAnswer: "A, C, F",
     );
-    await tester.pumpWidget(_host(ScanState.result(multi, Uint8List(0)), quickMode: true));
+    bool done = false;
+    await tester.pumpWidget(
+      _host(ScanState.result(multi, Uint8List(0)), quickMode: true, onReset: () => done = true),
+    );
     await tester.pump();
 
-    // Each selected letter is its own widget (laid out in a Row), not one blob.
+    // Only the first token shows initially (sequential, not side-by-side).
     expect(find.text("A"), findsOneWidget);
-    expect(find.text("C"), findsOneWidget);
-    expect(find.text("D"), findsOneWidget);
-    expect(find.text("A, C, D"), findsNothing);
+    expect(find.text("C"), findsNothing);
 
-    // Clean up the pending fade timer.
-    await tester.tap(find.text("A"));
-    await tester.pumpAndSettle();
+    // After 2.5s → second token; after another 2.5s → third.
+    await tester.pump(const Duration(milliseconds: 2500));
+    expect(find.text("C"), findsOneWidget);
+    expect(find.text("A"), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 2500));
+    expect(find.text("F"), findsOneWidget);
+
+    // After the last token's 2.5s, control returns to the camera (onReset).
+    await tester.pump(const Duration(milliseconds: 2500));
+    expect(done, isTrue);
   });
 }

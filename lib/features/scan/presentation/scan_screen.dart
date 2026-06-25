@@ -122,6 +122,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         final CameraDescription back = _backCameras[_backIndex];
         controller = CameraController(back, ResolutionPreset.high, enableAudio: false);
         await controller.initialize();
+        // Never fire the flash on capture (the default is auto). Guarded because
+        // some lenses (e.g. ultra-wide) have no flash unit.
+        try {
+          await controller.setFlashMode(FlashMode.off);
+        } on CameraException catch (e) {
+          developer.log("setFlashMode(off) unsupported: ${e.code}", name: "ScanScreen");
+        }
         _minZoom = await controller.getMinZoomLevel();
         _maxZoom = await controller.getMaxZoomLevel();
         _currentZoom = _minZoom;
