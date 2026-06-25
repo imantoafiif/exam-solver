@@ -82,4 +82,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(done, isTrue);
   });
+
+  testWidgets("quick mode renders multi-select answers side by side", (WidgetTester tester) async {
+    const AnswerResult multi = AnswerResult(
+      rawMarkdown: "## Best Answer\n\nA, C, D",
+      bestAnswer: "A",
+      confidence: "High",
+      reconstructedQuestion: "Q",
+      quickAnswer: "A, C, D",
+    );
+    await tester.pumpWidget(_host(ScanState.result(multi, Uint8List(0)), quickMode: true));
+    await tester.pump();
+
+    // Each selected letter is its own widget (laid out in a Row), not one blob.
+    expect(find.text("A"), findsOneWidget);
+    expect(find.text("C"), findsOneWidget);
+    expect(find.text("D"), findsOneWidget);
+    expect(find.text("A, C, D"), findsNothing);
+
+    // Clean up the pending fade timer.
+    await tester.tap(find.text("A"));
+    await tester.pumpAndSettle();
+  });
 }

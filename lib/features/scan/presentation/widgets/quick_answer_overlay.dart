@@ -91,30 +91,21 @@ class _QuickAnswerOverlayState extends State<QuickAnswerOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final String text = widget.answer.trim().isEmpty ? "?" : widget.answer.trim();
-    final Color? bg = widget.background;
+    // Multi-select answers come through as "A, C, D" — split into tokens.
+    final List<String> tokens = widget.answer
+        .split(RegExp(r"\s*,\s*"))
+        .map((String t) => t.trim())
+        .where((String t) => t.isNotEmpty)
+        .toList();
+    final bool isMulti = tokens.length > 1;
+
+    // Multi-select: no rainbow color, but a dark scrim so the letters pop.
+    // Single-select: the optional colored background.
+    final Color? bg = isMulti ? Colors.black.withValues(alpha: 0.85) : widget.background;
     // Contrast: dark text on light backgrounds (e.g. yellow), white otherwise.
     final Color textColor = bg != null && bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
-    final Widget content = Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 240,
-              fontWeight: FontWeight.w900,
-              height: 1.0,
-              shadows: const <Shadow>[Shadow(blurRadius: 28, color: Colors.black54)],
-            ),
-          ),
-        ),
-      ),
-    );
+    final Widget content = isMulti ? _buildMulti(tokens, textColor) : _buildSingle(textColor);
 
     return GestureDetector(
       onTap: _dismissEarly,
@@ -129,6 +120,53 @@ class _QuickAnswerOverlayState extends State<QuickAnswerOverlay> {
                 child: SizedBox.expand(child: content),
               )
             : content,
+      ),
+    );
+  }
+
+  TextStyle _tokenStyle(Color color) {
+    return TextStyle(
+      color: color,
+      fontSize: 240,
+      fontWeight: FontWeight.w900,
+      height: 1.0,
+      shadows: const <Shadow>[Shadow(blurRadius: 28, color: Colors.black54)],
+    );
+  }
+
+  /// One big centered token (single-select / true-false / number).
+  Widget _buildSingle(Color textColor) {
+    final String text = widget.answer.trim().isEmpty ? "?" : widget.answer.trim();
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(text, textAlign: TextAlign.center, style: _tokenStyle(textColor)),
+        ),
+      ),
+    );
+  }
+
+  /// Multi-select tokens side by side, left→right, scaled so they all fit on
+  /// one screen while staying as large as possible.
+  Widget _buildMulti(List<String> tokens, Color textColor) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              for (int i = 0; i < tokens.length; i++) ...<Widget>[
+                if (i > 0) const SizedBox(width: 96),
+                Text(tokens[i], style: _tokenStyle(textColor)),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
