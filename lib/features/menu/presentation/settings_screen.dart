@@ -36,10 +36,11 @@ class SettingsScreen extends ConsumerWidget {
             SwitchListTile(
               value: settings.coloredOverlay,
               onChanged: settings.quickAnswer ? notifier.setColoredOverlay : null,
-              title: const Text("Colored answer background  (experimental)"),
+              title: const Text("Colored answer background"),
               subtitle: Text(
                 settings.quickAnswer
-                    ? "Fill the screen with a color per answer (A red, B yellow, C green, D blue)."
+                    ? "Fill the screen with a color per answer "
+                          "(A red, B yellow, C green, D blue, E black, F white)."
                     : "Requires Quick answer to be on.",
               ),
             ),

@@ -361,7 +361,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   }
 }
 
-/// Bottom-right button to cycle back lenses (main / ultra-wide / tele). Shows
+/// Top-right button to cycle back lenses (main / ultra-wide / tele). Shows
 /// the current lens index so the user can find the wide one.
 class _LensButton extends StatelessWidget {
   const _LensButton({required this.index, required this.count, required this.onSwitch});
@@ -374,9 +374,9 @@ class _LensButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Align(
-        alignment: Alignment.bottomRight,
+        alignment: Alignment.topRight,
         child: Padding(
-          padding: const EdgeInsets.only(right: 16, bottom: 40),
+          padding: const EdgeInsets.only(right: 16, top: 16),
           child: Material(
             color: Colors.black54,
             shape: const StadiumBorder(),
