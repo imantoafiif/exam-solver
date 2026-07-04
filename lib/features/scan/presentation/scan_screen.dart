@@ -39,8 +39,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
 
   // Back-facing lenses the platform exposes (Camera2 lists main / ultra-wide /
   // tele separately); the user cycles between them with the lens button.
+  // Default to lens 2 (the wide lens on this device); falls back to lens 1
+  // if the device only exposes a single back camera (clamped in _initCamera).
   List<CameraDescription> _backCameras = <CameraDescription>[];
-  int _backIndex = 0;
+  int _backIndex = 1;
 
   // Pinch-to-zoom state.
   double _minZoom = 1.0;
@@ -186,6 +188,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     }
   }
 
+  /// Friendly name for a back-lens index. On typical multi-camera phones the
+  /// platform lists main first, then ultra-wide, so index 0 = Normal, 1 = Wide.
+  String _lensLabel(int index) {
+    switch (index) {
+      case 0:
+        return "Normal";
+      case 1:
+        return "Wide";
+      default:
+        return "Lens ${index + 1}";
+    }
+  }
+
   /// Cycles to the next back lens (e.g. main → ultra-wide → tele) and re-inits.
   Future<void> _switchLens() async {
     if (_backCameras.length < 2) {
@@ -299,7 +314,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
               _baseLayer(scanState),
               if (scanState is ScanCameraReady && zoomSupported) _ZoomIndicator(zoom: _currentZoom),
               if (scanState is ScanCameraReady && _backCameras.length > 1)
-                _LensButton(index: _backIndex, count: _backCameras.length, onSwitch: _switchLens),
+                _LensButton(label: _lensLabel(_backIndex), onSwitch: _switchLens),
               ScanStatusOverlay(
                 state: scanState,
                 onReset: notifier.reset,
@@ -361,13 +376,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   }
 }
 
-/// Bottom-center button to cycle back lenses (main / ultra-wide / tele). Shows
-/// the current lens index so the user can find the wide one.
+/// Bottom-center button to cycle back lenses. Shows the current lens's friendly
+/// name (Normal / Wide) so users know which one they're on.
 class _LensButton extends StatelessWidget {
-  const _LensButton({required this.index, required this.count, required this.onSwitch});
+  const _LensButton({required this.label, required this.onSwitch});
 
-  final int index;
-  final int count;
+  final String label;
   final VoidCallback onSwitch;
 
   @override
@@ -384,16 +398,13 @@ class _LensButton extends StatelessWidget {
             child: InkWell(
               onTap: onSwitch,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     const Icon(Icons.cameraswitch_outlined, color: Colors.white, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Lens ${index + 1}/$count",
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
+                    const SizedBox(width: 8),
+                    Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
                   ],
                 ),
               ),
