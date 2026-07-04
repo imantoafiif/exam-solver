@@ -33,7 +33,7 @@ class ScanStatusOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (state) {
-      ScanCameraReady() => const _TapHint(),
+      ScanCameraReady() => const SizedBox.shrink(),
       ScanCapturing() => const LoadingOverlay(label: "Capturing…"),
       ScanAnalyzing() => const LoadingOverlay(label: "Analyzing…"),
       ScanResult(:final answer) =>
@@ -51,35 +51,5 @@ class ScanStatusOverlay extends StatelessWidget {
         canRetry: frame != null,
       ),
     };
-  }
-}
-
-/// Subtle hint shown over the live preview telling the user what to do.
-class _TapHint extends StatelessWidget {
-  const _TapHint();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 32),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Text(
-                "Tap anywhere to scan",
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
