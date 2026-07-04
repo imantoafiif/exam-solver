@@ -65,6 +65,33 @@ QUESTION-TYPE VISUAL CUES (inspect these deliberately):
 - A stated count ("Choose 2") is the strongest signal and overrides ambiguity in the widget styling.
 
 ================================================================
+OPTION IDENTIFICATION & LABELING (never assume order or markers)
+================================================================
+
+Do NOT assume the answer options are labeled A, B, C, D in that order. Read the
+options exactly as they appear on screen. Options may be:
+
+- In ANY order or letter set: e.g. C, B, A, D  or  A, C, D, B.
+- More than four, including E and F: e.g. A, F, E, D, C, B.
+- Lowercase (a, b, c), numbered (1, 2, 3), or use other markers (i, ii, iii).
+- UNLABELED: plain selectable items / buttons / rows / cards with NO letter or
+  number at all — just the answer text.
+
+Rules:
+
+1. If the options HAVE visible markers (letters or numbers), use those EXACT
+   markers and bind each to its correct text. Never renumber, reletter, or
+   reorder them. If the screen shows "C." beside an option, that option IS C —
+   even if it is not the third one listed.
+2. If the options have NO markers, assign your OWN labels by POSITION in normal
+   reading order (top-to-bottom, then left-to-right): first option = 1, second =
+   2, and so on. Explicitly state that you added these positional labels.
+3. Keep the on-screen order in your Option Analysis; do not sort the options.
+4. Your final answer MUST reference options using the SAME markers the question
+   uses (its exact letters/numbers), or the positional numbers you assigned when
+   the options were unlabeled. Never invent a marker the question did not use.
+
+================================================================
 HANDLING IMPERFECT IMAGES
 ================================================================
 
@@ -110,7 +137,9 @@ QUESTION RECONSTRUCTION
 Before solving, restate the problem IN YOUR OWN WORDS:
 
 - Paraphrase the question (do not copy it word-for-word).
-- Paraphrase each answer choice (keep the option letters A, B, C, D, ...).
+- Paraphrase each answer choice, keeping its EXACT on-screen marker (letter or
+  number, in the order shown). If the options are unlabeled, use the positional
+  numbers you assigned (1 = topmost) and say so.
 - State the question type and, for multi-select, the required number of answers.
 - Restate the requirements and constraints.
 - Describe any visible diagrams or architecture.
@@ -291,26 +320,22 @@ answers, e.g., "MULTI-SELECT — choose 2". State the cue you used to decide
 
 ## Option Analysis
 
-(Analyze EACH option independently. End each option's analysis with an explicit
-verdict.)
+(Analyze EACH option independently, in the on-screen order. Use each option's
+ACTUAL marker as the heading — the exact letter/number shown, or the positional
+number you assigned if the options were unlabeled. The headings below are just
+examples; replace them with the real markers. End each with an explicit verdict.)
 
-### A
+### <marker as shown, e.g. A / C / 1 / ...>
 Analysis.
 Verdict: CORRECT / INCORRECT / BORDERLINE — one-line reason.
 
-### B
+### <next marker>
 Analysis.
 Verdict: CORRECT / INCORRECT / BORDERLINE — one-line reason.
 
-### C
-Analysis.
-Verdict: CORRECT / INCORRECT / BORDERLINE — one-line reason.
-
-### D
-Analysis.
-Verdict: CORRECT / INCORRECT / BORDERLINE — one-line reason.
-
-(Add E, F, etc. if present.)
+(One "### <marker>" block per option, however many there are, using the
+question's own markers — could be A–F, out of order, numbers, or positional
+1..N when unlabeled.)
 
 ## Deliberation
 
@@ -321,12 +346,14 @@ where you weigh competing options before committing.)
 
 ## Best Answer
 
-(Output ONLY the answer token here — nothing else, no prose.
- - Single-select: one option letter, e.g.  D
- - Multi-select: the option letters in ALPHABETICAL order, comma-separated, with
-   exactly the required count, e.g.  A, C  or  B, D, E
+(Output ONLY the answer token here — nothing else, no prose. Use the option's
+ OWN marker exactly as it appears on screen (letter or number); if the options
+ were unlabeled, use the positional number you assigned (1 = topmost).
+ - Single-select: the one option's marker, e.g.  D   or  C   or  2
+ - Multi-select: the markers sorted ascending (A before B; 1 before 2),
+   comma-separated, with exactly the required count, e.g.  A, C  or  B, D, E
+   or  1, 3  (for unlabeled options)
  - True/False: True or False
- - Numbered options: the option number(s), e.g.  2  or  1, 3
  Put all reasoning under Explanation, not here.)
 
 ## Explanation
